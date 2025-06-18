@@ -5,7 +5,7 @@ A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domai
 ## Features
 
 - ✅ Generate **Events** with handlers
-- ✅ Generate **Commands** with handlers  
+- ✅ Generate **Commands** with handlers
 - ✅ Generate **Queries** with handlers
 - ✅ Automatic directory structure creation
 - ✅ Proper TypeScript templates with NestJS decorators
@@ -18,9 +18,11 @@ A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domai
 ## Installation
 
 ### Prerequisites
+
 - [Deno](https://deno.land/) installed on your system
 
 ### Option 1: Quick Install Script (Recommended)
+
 ```bash
 # Install latest version automatically
 curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash
@@ -33,6 +35,7 @@ curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash 
 ```
 
 ### Option 2: Download Pre-built Binary
+
 ```bash
 # Linux x64
 curl -fsSL https://github.com/<your-repo>/releases/latest/download/cquver-linux-x64 -o cquver
@@ -47,6 +50,7 @@ Invoke-WebRequest -Uri "https://github.com/<your-repo>/releases/latest/download/
 ```
 
 ### Option 3: Build Manually (Development)
+
 ```bash
 # Clone or download this repository
 cd cquver
@@ -59,6 +63,7 @@ chmod +x cquver
 ```
 
 ### Option 4: Run Directly (No Build Required)
+
 ```bash
 # Run without compiling (smallest footprint)
 deno run --allow-read --allow-write --allow-env https://raw.githubusercontent.com/<your-repo>/main/cli.ts <args>
@@ -68,6 +73,7 @@ deno task dev <args>
 ```
 
 ### Install globally (optional)
+
 ```bash
 # Move to a directory in your PATH
 sudo mv cquver /usr/local/bin/
@@ -80,8 +86,9 @@ cquver <app_name> create <type> <name>
 ```
 
 ### Parameters
+
 - `<app_name>`: The name of your NestJS application
-- `<type>`: One of `event`, `command`, or `query`  
+- `<type>`: One of `event`, `command`, or `query`
 - `<name>`: The name of the event/command/query (will be normalized)
 
 ### Examples
@@ -103,6 +110,7 @@ cquver order-service create query find-orders-by-user-query
 ## Generated Structure
 
 For example, running:
+
 ```bash
 cquver socket-service create event ConnectWebSocket
 cquver socket-service create command DisconnectWebSocket
@@ -110,6 +118,7 @@ cquver socket-service create query GetConnectionStatus
 ```
 
 Will create:
+
 ```
 apps/src/socket-service/
 ├── application/
@@ -138,6 +147,7 @@ apps/src/socket-service/
 ### Generated Files
 
 #### Handler Arrays
+
 The CLI automatically creates and maintains handler arrays in each type's index file:
 
 ```typescript
@@ -152,6 +162,7 @@ export const CommandHandlers = [
 ```
 
 #### Auto-Generated Module
+
 ```typescript
 // apps/src/socket-service/src/socket-service.module.ts
 import { Module } from '@nestjs/common';
@@ -172,6 +183,7 @@ export class SocketServiceModule {}
 ```
 
 #### Event Example
+
 ```typescript
 // user-created-event.event.ts
 import { IEvent } from '@nestjs/cqrs';
@@ -195,7 +207,7 @@ export class UserCreatedEventHandler implements IEventHandler<UserCreatedEvent> 
   async handle(event: UserCreatedEvent): Promise<void> {
     // Handle the event here
     console.log('Handling event:', event);
-    
+
     // Example: Send notification, update read model, etc.
   }
 }
@@ -226,8 +238,9 @@ deno check cli.ts
 ## Testing
 
 The project includes a comprehensive test suite covering:
+
 - ✅ **Unit tests** - Utility functions and string operations
-- ✅ **Template tests** - NestJS code generation 
+- ✅ **Template tests** - NestJS code generation
 - ✅ **Integration tests** - File system operations and structure creation
 - ✅ **End-to-end tests** - Complete CLI workflow testing
 
@@ -249,6 +262,7 @@ deno task test:watch
 ### Test Coverage
 
 The test suite validates:
+
 - String manipulation utilities (PascalCase ↔ kebab-case conversion)
 - Template generation for all CQRS types (events, commands, queries)
 - Directory structure creation and file naming
@@ -287,4 +301,4 @@ cquver/
 
 ## License
 
-MIT 
+MIT

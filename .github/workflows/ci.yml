@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 env:
   DENO_VERSION: v2.3.x
@@ -60,7 +60,7 @@ jobs:
       - name: Run integration tests
         run: deno task test:integration
 
-      - name: Run end-to-end tests  
+      - name: Run end-to-end tests
         run: deno task test:e2e
 
   build:
@@ -82,4 +82,4 @@ jobs:
       - name: Test built binary
         run: |
           chmod +x cquver
-          ./cquver --help 
+          ./cquver --help

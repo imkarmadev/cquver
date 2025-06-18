@@ -38,7 +38,7 @@ jobs:
       - name: Run unit tests
         run: deno task test:unit
 
-      - name: Run template tests  
+      - name: Run template tests
         run: deno task test:unit
 
       - name: Run integration tests
@@ -58,7 +58,7 @@ jobs:
             target: x86_64-unknown-linux-gnu
             binary: cquver-linux-x64
           - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu  
+            target: aarch64-unknown-linux-gnu
             binary: cquver-linux-arm64
           - os: macos-latest
             target: x86_64-apple-darwin
@@ -145,18 +145,18 @@ jobs:
         run: |
           cat > release_notes.md << EOF
           # cquver ${{ steps.tag.outputs.tag }}
-          
+
           NestJS DDD/CQRS Boilerplate Generator CLI
-          
+
           ## 🚀 Features
           - Generate NestJS events, commands, and queries with proper CQRS structure
           - Automatic handler array management
           - Module file auto-updates while preserving existing code
           - Smart naming conventions (PascalCase classes, kebab-case files)
           - Plural folder organization (commands/, events/, queries/)
-          
+
           ## 📦 Installation
-          
+
           ### Download Binary
           Choose the appropriate binary for your platform:
           - **Linux x64**: \`cquver-linux-x64\`
@@ -164,36 +164,36 @@ jobs:
           - **macOS x64**: \`cquver-macos-x64\`
           - **macOS ARM64**: \`cquver-macos-arm64\`
           - **Windows x64**: \`cquver-windows-x64.exe\`
-          
+
           ### Quick Install (Linux/macOS)
           \`\`\`bash
           # Linux x64
           curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/cquver-linux-x64 -o cquver
           chmod +x cquver
           sudo mv cquver /usr/local/bin/
-          
+
           # macOS ARM64 (Apple Silicon)
           curl -fsSL https://github.com/${{ github.repository }}/releases/download/${{ steps.tag.outputs.tag }}/cquver-macos-arm64 -o cquver
           chmod +x cquver
           sudo mv cquver /usr/local/bin/
           \`\`\`
-          
+
           ## 📋 Usage
           \`\`\`bash
           cquver <app_name> create <type> <name>
-          
+
           # Examples
           cquver user-service create event UserCreated
-          cquver auth-service create command CreateUser  
+          cquver auth-service create command CreateUser
           cquver order-service create query GetOrder
           \`\`\`
-          
+
           ## ✅ Verification
           All binaries have been tested and include:
           - Comprehensive test suite (24 tests)
           - Cross-platform compatibility
           - SHA256 checksums for security verification
-          
+
           ## 🔧 Alternative Installation
           If you have Deno installed, you can also run directly:
           \`\`\`bash
@@ -248,4 +248,4 @@ jobs:
           else
             git commit -m "Update install script to version ${{ steps.tag.outputs.tag }}"
             git push
-          fi 
+          fi

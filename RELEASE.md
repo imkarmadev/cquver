@@ -9,6 +9,7 @@ The project uses GitHub Actions to automatically build and release binaries for 
 ### 🚀 Creating a Release
 
 #### Method 1: Git Tags (Recommended)
+
 ```bash
 # Create and push a version tag
 git tag v1.0.0
@@ -16,6 +17,7 @@ git push origin v1.0.0
 ```
 
 #### Method 2: Manual Trigger
+
 1. Go to **Actions** tab in GitHub
 2. Select **Release** workflow
 3. Click **Run workflow**
@@ -26,13 +28,13 @@ git push origin v1.0.0
 
 The release workflow builds binaries for:
 
-| Platform | Architecture | Binary Name |
-|----------|-------------|-------------|
-| Linux | x64 | `cquver-linux-x64` |
-| Linux | ARM64 | `cquver-linux-arm64` |
-| macOS | x64 (Intel) | `cquver-macos-x64` |
-| macOS | ARM64 (Apple Silicon) | `cquver-macos-arm64` |
-| Windows | x64 | `cquver-windows-x64.exe` |
+| Platform | Architecture          | Binary Name              |
+| -------- | --------------------- | ------------------------ |
+| Linux    | x64                   | `cquver-linux-x64`       |
+| Linux    | ARM64                 | `cquver-linux-arm64`     |
+| macOS    | x64 (Intel)           | `cquver-macos-x64`       |
+| macOS    | ARM64 (Apple Silicon) | `cquver-macos-arm64`     |
+| Windows  | x64                   | `cquver-windows-x64.exe` |
 
 ### 🔄 Workflow Steps
 
@@ -47,6 +49,7 @@ The release workflow builds binaries for:
 ### 📄 Release Notes
 
 Release notes are automatically generated and include:
+
 - Feature highlights
 - Installation instructions for each platform
 - Usage examples
@@ -79,6 +82,7 @@ sha256sum cquver-* > checksums.txt
 ## Testing Releases
 
 ### Pre-release Testing
+
 ```bash
 # Test locally built binary
 ./cquver --help
@@ -91,6 +95,7 @@ chmod +x cquver-test
 ```
 
 ### Installation Testing
+
 ```bash
 # Test install script
 curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/install.sh | bash
@@ -102,6 +107,7 @@ curl -fsSL https://raw.githubusercontent.com/USER/REPO/main/install.sh | bash -s
 ## Version Naming
 
 Follow semantic versioning:
+
 - `v1.0.0` - Major release
 - `v1.1.0` - Minor release (new features)
 - `v1.1.1` - Patch release (bug fixes)
@@ -121,16 +127,19 @@ Before creating a release:
 ## Troubleshooting
 
 ### Build Failures
+
 - Check Deno version compatibility
 - Verify all dependencies are accessible
 - Check cross-compilation target support
 
 ### Release Failures
+
 - Ensure `GITHUB_TOKEN` has correct permissions
 - Check GitHub Actions quota/limits
 - Verify tag format matches trigger pattern
 
 ### Install Script Issues
+
 - Update `REPO` variable in `install.sh`
 - Test with different platforms
 - Check binary naming consistency
@@ -138,11 +147,13 @@ Before creating a release:
 ## Continuous Integration
 
 The CI workflow (`.github/workflows/ci.yml`) runs on:
+
 - Every push to `main`
 - Every pull request to `main`
 
 CI includes:
+
 - Linting and formatting checks
 - Cross-platform testing
 - Build verification
-- End-to-end testing 
+- End-to-end testing

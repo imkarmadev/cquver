@@ -1,4 +1,5 @@
-export const commandTemplate = (className: string) => `import { ICommand } from '@nestjs/cqrs';
+export const commandTemplate = (className: string) =>
+  `import { ICommand } from '@nestjs/cqrs';
 
 export class ${className} implements ICommand {
   constructor(
@@ -9,7 +10,12 @@ export class ${className} implements ICommand {
 }
 `;
 
-export const commandHandlerTemplate = (commandName: string, handlerName: string, fileName: string) => `import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+export const commandHandlerTemplate = (
+  commandName: string,
+  handlerName: string,
+  fileName: string,
+) =>
+  `import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { ${commandName} } from './${fileName}.command';
 
 @CommandHandler(${commandName})
@@ -30,6 +36,7 @@ export class ${handlerName} implements ICommandHandler<${commandName}> {
 }
 `;
 
-export const commandIndexTemplate = (commandName: string, handlerName: string, fileName: string) => `export { ${commandName} } from './${fileName}.command';
+export const commandIndexTemplate = (commandName: string, handlerName: string, fileName: string) =>
+  `export { ${commandName} } from './${fileName}.command';
 export { ${handlerName} } from './${fileName}.handler';
-`; 
+`;

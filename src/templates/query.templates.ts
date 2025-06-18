@@ -1,4 +1,5 @@
-export const queryTemplate = (className: string) => `import { IQuery } from '@nestjs/cqrs';
+export const queryTemplate = (className: string) =>
+  `import { IQuery } from '@nestjs/cqrs';
 
 export class ${className} implements IQuery {
   constructor(
@@ -9,7 +10,8 @@ export class ${className} implements IQuery {
 }
 `;
 
-export const queryHandlerTemplate = (queryName: string, handlerName: string, fileName: string) => `import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
+export const queryHandlerTemplate = (queryName: string, handlerName: string, fileName: string) =>
+  `import { QueryHandler, IQueryHandler } from '@nestjs/cqrs';
 import { ${queryName} } from './${fileName}.query';
 
 @QueryHandler(${queryName})
@@ -30,6 +32,7 @@ export class ${handlerName} implements IQueryHandler<${queryName}> {
 }
 `;
 
-export const queryIndexTemplate = (queryName: string, handlerName: string, fileName: string) => `export { ${queryName} } from './${fileName}.query';
+export const queryIndexTemplate = (queryName: string, handlerName: string, fileName: string) =>
+  `export { ${queryName} } from './${fileName}.query';
 export { ${handlerName} } from './${fileName}.handler';
-`; 
+`;

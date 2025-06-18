@@ -1,20 +1,20 @@
 {
-    "tasks": {
-        "dev": "deno run --allow-read --allow-write --allow-env cli.ts",
-        "build": "deno compile --allow-read --allow-write --allow-env --output cquver cli.ts",
-        "build-small": "deno compile --allow-read --allow-write --allow-env --no-npm --output cquver cli.ts",
-        "test": "deno test --allow-read --allow-write --allow-env --allow-run tests/",
-        "test:unit": "deno test --allow-read --allow-write tests/utils.test.ts tests/templates.test.ts",
-        "test:integration": "deno test --allow-read --allow-write --allow-env tests/generator.test.ts",
-        "test:e2e": "deno test --allow-read --allow-write --allow-env --allow-run tests/cli.test.ts",
-        "test:watch": "deno test --allow-read --allow-write --allow-env --allow-run --watch tests/"
-    },
-    "fmt": {
-        "useTabs": false,
-        "lineWidth": 100,
-        "indentWidth": 2,
-        "semiColons": true,
-        "singleQuote": true,
-        "proseWrap": "preserve"
-    }
+  "tasks": {
+    "dev": "deno run --allow-read --allow-write --allow-env cli.ts",
+    "build": "deno compile --allow-read --allow-write --allow-env --output cquver cli.ts",
+    "build-small": "deno compile --allow-read --allow-write --allow-env --no-npm --output cquver cli.ts",
+    "test": "deno test --allow-read --allow-write --allow-env --allow-run tests/",
+    "test:unit": "deno test --allow-read --allow-write tests/utils.test.ts tests/templates.test.ts",
+    "test:integration": "deno test --allow-read --allow-write --allow-env tests/generator.test.ts",
+    "test:e2e": "deno test --allow-read --allow-write --allow-env --allow-run tests/cli.test.ts",
+    "test:watch": "deno test --allow-read --allow-write --allow-env --allow-run --watch tests/"
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": true,
+    "proseWrap": "preserve"
+  }
 }
