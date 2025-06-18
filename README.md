@@ -1,6 +1,12 @@
+<div align="center">
+
+![cquver Logo](assets/logo.png)
+
 # cquver - NestJS DDD/CQRS Boilerplate Generator
 
-A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domain-Driven Design (DDD) and Command Query Responsibility Segregation (CQRS) patterns.
+*A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domain-Driven Design (DDD) and Command Query Responsibility Segregation (CQRS) patterns.*
+
+</div>
 
 ## Features
 
