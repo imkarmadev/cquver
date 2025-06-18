@@ -1,19 +1,11 @@
-import { assertEquals, assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import {
   eventHandlerTemplate,
   eventIndexTemplate,
   eventTemplate,
 } from '../src/templates/event.templates.ts';
-import {
-  commandHandlerTemplate,
-  commandIndexTemplate,
-  commandTemplate,
-} from '../src/templates/command.templates.ts';
-import {
-  queryHandlerTemplate,
-  queryIndexTemplate,
-  queryTemplate,
-} from '../src/templates/query.templates.ts';
+import { commandHandlerTemplate, commandTemplate } from '../src/templates/command.templates.ts';
+import { queryHandlerTemplate, queryTemplate } from '../src/templates/query.templates.ts';
 
 Deno.test('eventTemplate - generates correct event class', () => {
   const result = eventTemplate('UserCreatedEvent');

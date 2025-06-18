@@ -1,4 +1,4 @@
-import { assertEquals, assertThrows } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { ensureSuffix, generateHandlerName, toKebabCase, toPascalCase } from '../src/utils.ts';
 
 Deno.test('toPascalCase - converts various formats to PascalCase', () => {

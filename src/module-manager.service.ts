@@ -46,7 +46,7 @@ export class ModuleManagerService {
    */
   async updateApplicationIndex(
     appName: string,
-    type: 'command' | 'event' | 'query',
+    _type: 'command' | 'event' | 'query',
     newClass: ClassInfo,
   ): Promise<void> {
     const applicationPath = join('apps', 'src', appName, 'application');
@@ -106,7 +106,7 @@ export class ModuleManagerService {
    */
   private async getAllHandlers(
     typePath: string,
-    type: 'command' | 'event' | 'query',
+    _type: 'command' | 'event' | 'query',
   ): Promise<HandlerInfo[]> {
     const handlers: HandlerInfo[] = [];
 
@@ -280,7 +280,7 @@ export class ${className} {}
   /**
    * Updates existing module content with handler imports and providers
    */
-  private updateModuleContent(content: string, appName: string): string {
+  private updateModuleContent(content: string, _appName: string): string {
     // Add imports if not present
     const imports = [
       "import { CommandHandlers } from './application/commands';",

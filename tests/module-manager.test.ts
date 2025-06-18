@@ -1,4 +1,4 @@
-import { assert, assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assert } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { exists } from 'https://deno.land/std@0.208.0/fs/exists.ts';
 import { ModuleManagerService } from '../src/module-manager.service.ts';
 
