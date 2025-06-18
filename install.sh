@@ -5,8 +5,8 @@
 
 set -e
 
-VERSION="latest"
-REPO="your-username/cquver"
+VERSION="v1.0.4"
+REPO="imkarmadev/cquver"
 INSTALL_DIR="/usr/local/bin"
 BINARY_NAME="cquver"
 BUILD_LOCAL=false
@@ -218,7 +218,7 @@ show_usage() {
 while [[ $# -gt 0 ]]; do
     case $1 in
         --version=*)
-            VERSION="${1#*=}"
+            VERSION="v1.0.4"
             shift
             ;;
         --install-dir=*)
