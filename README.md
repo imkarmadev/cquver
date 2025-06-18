@@ -20,7 +20,13 @@ A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domai
 ### Prerequisites
 - [Deno](https://deno.land/) installed on your system
 
-### Build the CLI
+### Option 1: Quick Install Script
+```bash
+# Clone and install in one command
+git clone <your-repo-url> && cd cquver && ./install.sh
+```
+
+### Option 2: Build Manually
 ```bash
 # Clone or download this repository
 cd cquver
@@ -30,6 +36,17 @@ deno task build
 
 # Make it executable (Linux/macOS)
 chmod +x cquver
+```
+
+> **Note**: The compiled binary (`cquver`) is not included in the repository due to its large size (~77MB). You need to build it locally using the command above.
+
+### Option 3: Run Directly (No Build Required)
+```bash
+# Run without compiling (smallest footprint)
+deno run --allow-read --allow-write --allow-env https://raw.githubusercontent.com/<your-repo>/main/cli.ts <args>
+
+# Or locally
+deno task dev <args>
 ```
 
 ### Install globally (optional)

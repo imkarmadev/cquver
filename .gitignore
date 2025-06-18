@@ -1,0 +1,22 @@
+# Compiled binaries
+cquver
+cquver.exe
+
+# Deno
+deno.lock
+
+# Node modules (if any)
+node_modules/
+
+# Test files
+apps/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db 

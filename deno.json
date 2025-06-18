@@ -1,7 +1,8 @@
 {
     "tasks": {
         "dev": "deno run --allow-read --allow-write --allow-env cli.ts",
-        "build": "deno compile --allow-read --allow-write --allow-env --output cquver cli.ts"
+        "build": "deno compile --allow-read --allow-write --allow-env --output cquver cli.ts",
+        "build-small": "deno compile --allow-read --allow-write --allow-env --no-npm --output cquver cli.ts"
     },
     "fmt": {
         "useTabs": false,
