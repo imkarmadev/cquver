@@ -215,9 +215,10 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
+      - name: Checkout main branch
         uses: actions/checkout@v4
         with:
+          ref: main
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Get tag name
@@ -243,5 +244,5 @@ jobs:
             echo "No changes to commit"
           else
             git commit -m "Update install script to version ${{ steps.tag.outputs.tag }}"
-            git push
+            git push origin main
           fi
