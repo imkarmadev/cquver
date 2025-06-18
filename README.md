@@ -20,13 +20,33 @@ A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domai
 ### Prerequisites
 - [Deno](https://deno.land/) installed on your system
 
-### Option 1: Quick Install Script
+### Option 1: Quick Install Script (Recommended)
 ```bash
-# Clone and install in one command
-git clone <your-repo-url> && cd cquver && ./install.sh
+# Install latest version automatically
+curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash
+
+# Install specific version
+curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash -s -- --version=v1.0.0
+
+# Install to custom directory
+curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash -s -- --install-dir=~/bin
 ```
 
-### Option 2: Build Manually
+### Option 2: Download Pre-built Binary
+```bash
+# Linux x64
+curl -fsSL https://github.com/<your-repo>/releases/latest/download/cquver-linux-x64 -o cquver
+chmod +x cquver
+
+# macOS ARM64 (Apple Silicon)
+curl -fsSL https://github.com/<your-repo>/releases/latest/download/cquver-macos-arm64 -o cquver
+chmod +x cquver
+
+# Windows x64 (PowerShell)
+Invoke-WebRequest -Uri "https://github.com/<your-repo>/releases/latest/download/cquver-windows-x64.exe" -OutFile "cquver.exe"
+```
+
+### Option 3: Build Manually (Development)
 ```bash
 # Clone or download this repository
 cd cquver
@@ -38,9 +58,7 @@ deno task build
 chmod +x cquver
 ```
 
-> **Note**: The compiled binary (`cquver`) is not included in the repository due to its large size (~77MB). You need to build it locally using the command above.
-
-### Option 3: Run Directly (No Build Required)
+### Option 4: Run Directly (No Build Required)
 ```bash
 # Run without compiling (smallest footprint)
 deno run --allow-read --allow-write --allow-env https://raw.githubusercontent.com/<your-repo>/main/cli.ts <args>
@@ -204,6 +222,43 @@ deno fmt
 # Check types
 deno check cli.ts
 ```
+
+## Testing
+
+The project includes a comprehensive test suite covering:
+- ✅ **Unit tests** - Utility functions and string operations
+- ✅ **Template tests** - NestJS code generation 
+- ✅ **Integration tests** - File system operations and structure creation
+- ✅ **End-to-end tests** - Complete CLI workflow testing
+
+### Running Tests
+
+```bash
+# Run all tests
+deno task test
+
+# Run specific test categories
+deno task test:unit        # Fast unit tests (~50ms)
+deno task test:integration # File system integration tests (~200ms)
+deno task test:e2e        # End-to-end CLI tests (~500ms)
+
+# Watch mode (re-runs on file changes)
+deno task test:watch
+```
+
+### Test Coverage
+
+The test suite validates:
+- String manipulation utilities (PascalCase ↔ kebab-case conversion)
+- Template generation for all CQRS types (events, commands, queries)
+- Directory structure creation and file naming
+- Multiple handler management and deduplication
+- Module file updates while preserving existing providers
+- CLI argument validation and comprehensive error handling
+- Complex naming scenarios (e.g., `XMLHttpRequest` → `xml-http-request`)
+- Plural folder naming (commands/, events/, queries/)
+
+All tests include automatic cleanup to prevent pollution between test runs.
 
 ## Naming Conventions
 

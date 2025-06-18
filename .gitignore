@@ -10,6 +10,7 @@ node_modules/
 
 # Test files
 apps/
+test-temp/
 
 # IDE files
 .vscode/
