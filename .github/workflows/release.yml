@@ -28,7 +28,7 @@ jobs:
           deno-version: ${{ env.DENO_VERSION }}
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/deno
           key: deno-${{ hashFiles('deno.lock') }}
@@ -80,7 +80,7 @@ jobs:
           deno-version: ${{ env.DENO_VERSION }}
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/deno
           key: deno-${{ matrix.os }}-${{ hashFiles('deno.lock') }}
@@ -98,7 +98,7 @@ jobs:
             cli.ts
 
       - name: Upload binary artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.binary }}
           path: ${{ matrix.binary }}
@@ -115,7 +115,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: ./artifacts
 

@@ -47,7 +47,7 @@ jobs:
           deno-version: ${{ env.DENO_VERSION }}
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/deno
           key: deno-${{ matrix.os }}-${{ hashFiles('deno.lock') }}
