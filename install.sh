@@ -47,9 +47,6 @@ detect_platform() {
         darwin*)
             OS="macos"
             ;;
-        mingw*|cygwin*|msys*)
-            OS="windows"
-            ;;
         *)
             warning "Unsupported operating system: $os, falling back to local build"
             BUILD_LOCAL=true
@@ -75,9 +72,6 @@ detect_platform() {
     esac
     
     PLATFORM="${OS}-${ARCH}"
-    if [ "$OS" = "windows" ]; then
-        BINARY_NAME="${BINARY_NAME}.exe"
-    fi
 }
 
 # Get latest release version

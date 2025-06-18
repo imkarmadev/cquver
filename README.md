@@ -44,9 +44,6 @@ chmod +x cquver
 # macOS ARM64 (Apple Silicon)
 curl -fsSL https://github.com/<your-repo>/releases/latest/download/cquver-macos-arm64 -o cquver
 chmod +x cquver
-
-# Windows x64 (PowerShell)
-Invoke-WebRequest -Uri "https://github.com/<your-repo>/releases/latest/download/cquver-windows-x64.exe" -OutFile "cquver.exe"
 ```
 
 ### Option 3: Build Manually (Development)

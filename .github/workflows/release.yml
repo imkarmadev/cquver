@@ -66,9 +66,6 @@ jobs:
           - os: macos-latest
             target: aarch64-apple-darwin
             binary: cquver-macos-arm64
-          - os: windows-latest
-            target: x86_64-pc-windows-msvc
-            binary: cquver-windows-x64.exe
 
     steps:
       - name: Checkout code
@@ -163,7 +160,6 @@ jobs:
           - **Linux ARM64**: \`cquver-linux-arm64\`
           - **macOS x64**: \`cquver-macos-x64\`
           - **macOS ARM64**: \`cquver-macos-arm64\`
-          - **Windows x64**: \`cquver-windows-x64.exe\`
 
           ### Quick Install (Linux/macOS)
           \`\`\`bash
