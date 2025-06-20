@@ -74,8 +74,27 @@ jobs:
 
           INVALID_COMMITS=()
 
-          while IFS= read -r commit; do
-            if [[ ! "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?:\ ]]; then
+                    while IFS= read -r commit; do
+            # Use simple string matching to validate conventional commits
+            valid=false
+
+            # Extract the prefix before the first colon
+            if [[ "$commit" == *":"* ]]; then
+              prefix="${commit%%:*}"
+
+              # Remove scope and breaking change indicator if present
+              type="${prefix%%(*}"     # Remove (scope) if present
+              type="${type%!}"         # Remove ! if present
+
+              # Check if type is valid
+              case "$type" in
+                feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)
+                  valid=true
+                  ;;
+              esac
+            fi
+
+            if [[ "$valid" != "true" ]]; then
               INVALID_COMMITS+=("$commit")
             fi
           done <<< "$COMMITS"
@@ -114,16 +133,27 @@ jobs:
           OTHER=()
 
           while IFS= read -r commit; do
-            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!:\ ]]; then
-              BREAKING+=("$commit")
-              BUMP_LEVEL="major"
-            elif [[ "$commit" =~ ^feat(\([^)]+\))?:\ ]]; then
-              FEATURES+=("$commit")
-              if [ "$BUMP_LEVEL" != "major" ]; then
-                BUMP_LEVEL="minor"
+            # Extract type from commit message using simple string operations
+            if [[ "$commit" == *":"* ]]; then
+              prefix="${commit%%:*}"
+              type="${prefix%%(*}"     # Remove (scope) if present
+
+              # Check for breaking changes (! at the end of type/scope)
+              if [[ "$prefix" == *"!" ]]; then
+                BREAKING+=("$commit")
+                BUMP_LEVEL="major"
+              # Check for features
+              elif [[ "$type" == "feat" ]]; then
+                FEATURES+=("$commit")
+                if [ "$BUMP_LEVEL" != "major" ]; then
+                  BUMP_LEVEL="minor"
+                fi
+              # Check for fixes
+              elif [[ "$type" == "fix" ]]; then
+                FIXES+=("$commit")
+              else
+                OTHER+=("$commit")
               fi
-            elif [[ "$commit" =~ ^fix(\([^)]+\))?:\ ]]; then
-              FIXES+=("$commit")
             else
               OTHER+=("$commit")
             fi

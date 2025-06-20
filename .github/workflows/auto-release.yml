@@ -53,15 +53,24 @@ jobs:
           HAS_FIXES=false
 
           while IFS= read -r commit; do
-            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!:\ ]]; then
-              echo "🚨 Breaking change detected: $commit"
-              HAS_BREAKING=true
-            elif [[ "$commit" =~ ^feat(\([^)]+\))?:\ ]]; then
-              echo "✨ Feature detected: $commit"
-              HAS_FEATURES=true
-            elif [[ "$commit" =~ ^fix(\([^)]+\))?:\ ]]; then
-              echo "🐛 Fix detected: $commit"
-              HAS_FIXES=true
+            # Extract type from commit message using simple string operations
+            if [[ "$commit" == *":"* ]]; then
+              prefix="${commit%%:*}"
+              type="${prefix%%(*}"     # Remove (scope) if present
+
+              # Check for breaking changes (! at the end of type/scope)
+              if [[ "$prefix" == *"!" ]]; then
+                echo "🚨 Breaking change detected: $commit"
+                HAS_BREAKING=true
+              # Check for features
+              elif [[ "$type" == "feat" ]]; then
+                echo "✨ Feature detected: $commit"
+                HAS_FEATURES=true
+              # Check for fixes
+              elif [[ "$type" == "fix" ]]; then
+                echo "🐛 Fix detected: $commit"
+                HAS_FIXES=true
+              fi
             fi
           done <<< "$PR_COMMITS"
 
