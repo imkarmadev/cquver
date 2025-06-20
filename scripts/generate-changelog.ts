@@ -206,28 +206,28 @@ async function main() {
 
     if (commits.length === 0) {
       console.log('🔍 No new commits found since last release.');
-      
+
       // Check if there's unreleased content to include in this version
       const changelogPath = 'CHANGELOG.md';
       try {
         const existingContent = await Deno.readTextFile(changelogPath);
         const unreleasedMatch = existingContent.match(/## \[Unreleased\]([\s\S]*?)(?=## \[|$)/);
-        
+
         if (unreleasedMatch && unreleasedMatch[1].trim()) {
           console.log('📋 Found unreleased content, creating release entry...');
-          
+
           // Create release entry from unreleased content
           const unreleasedContent = unreleasedMatch[1].trim();
           const releaseContent = `## [${newVersion}] - ${date}\n\n${unreleasedContent}\n\n`;
-          
+
           // Replace unreleased section with new release and clean unreleased
           const updatedContent = existingContent
             .replace(/## \[Unreleased\][\s\S]*?(?=## \[|$)/, `## [Unreleased]\n\n${releaseContent}`)
             .replace(/\n{3,}/g, '\n\n'); // Clean up extra newlines
-          
+
           await Deno.writeTextFile(changelogPath, updatedContent);
           console.log('✅ Changelog updated with unreleased content!');
-          
+
           console.log('\n📖 New changelog entry:');
           console.log('─'.repeat(50));
           console.log(releaseContent);
@@ -237,7 +237,7 @@ async function main() {
       } catch {
         // Ignore if changelog doesn't exist
       }
-      
+
       console.log('📝 No unreleased content found either.');
       return;
     }
