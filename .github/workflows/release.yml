@@ -158,7 +158,7 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
 
-                  - name: Generate release notes
+      - name: Generate release notes
         id: release_notes
         run: |
           VERSION_NO_V="${{ steps.tag.outputs.tag }}"
@@ -175,7 +175,7 @@ jobs:
 
           EOF
 
-                    # Extract changelog section for this version (now that it's been generated)
+          # Extract changelog section for this version (now that it's been generated)
           if [ -f CHANGELOG.md ]; then
             echo "Found CHANGELOG.md, extracting content for version: $VERSION_NO_V"
 
