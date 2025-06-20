@@ -75,7 +75,7 @@ jobs:
           INVALID_COMMITS=()
 
           while IFS= read -r commit; do
-            if [[ ! "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?: ]]; then
+            if [[ ! "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?:\ ]]; then
               INVALID_COMMITS+=("$commit")
             fi
           done <<< "$COMMITS"
@@ -114,15 +114,15 @@ jobs:
           OTHER=()
 
           while IFS= read -r commit; do
-            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!: ]]; then
+            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!:\ ]]; then
               BREAKING+=("$commit")
               BUMP_LEVEL="major"
-            elif [[ "$commit" =~ ^feat(\([^)]+\))?: ]]; then
+            elif [[ "$commit" =~ ^feat(\([^)]+\))?:\ ]]; then
               FEATURES+=("$commit")
               if [ "$BUMP_LEVEL" != "major" ]; then
                 BUMP_LEVEL="minor"
               fi
-            elif [[ "$commit" =~ ^fix(\([^)]+\))?: ]]; then
+            elif [[ "$commit" =~ ^fix(\([^)]+\))?:\ ]]; then
               FIXES+=("$commit")
             else
               OTHER+=("$commit")

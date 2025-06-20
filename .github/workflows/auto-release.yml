@@ -53,13 +53,13 @@ jobs:
           HAS_FIXES=false
 
           while IFS= read -r commit; do
-            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!: ]]; then
+            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!:\ ]]; then
               echo "🚨 Breaking change detected: $commit"
               HAS_BREAKING=true
-            elif [[ "$commit" =~ ^feat(\([^)]+\))?: ]]; then
+            elif [[ "$commit" =~ ^feat(\([^)]+\))?:\ ]]; then
               echo "✨ Feature detected: $commit"
               HAS_FEATURES=true
-            elif [[ "$commit" =~ ^fix(\([^)]+\))?: ]]; then
+            elif [[ "$commit" =~ ^fix(\([^)]+\))?:\ ]]; then
               echo "🐛 Fix detected: $commit"
               HAS_FIXES=true
             fi
