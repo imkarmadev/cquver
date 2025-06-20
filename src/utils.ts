@@ -78,11 +78,20 @@ export function isValidConventionalCommit(commitMessage: string): boolean {
 
   const prefix = commitMessage.split(':')[0];
   const type = prefix.replace(/\([^)]+\)/, '').replace('!', '');
-  
+
   const validTypes = [
-    'feat', 'fix', 'docs', 'style', 'refactor', 
-    'perf', 'test', 'build', 'ci', 'chore', 'revert'
+    'feat',
+    'fix',
+    'docs',
+    'style',
+    'refactor',
+    'perf',
+    'test',
+    'build',
+    'ci',
+    'chore',
+    'revert',
   ];
-  
+
   return validTypes.includes(type);
 }
