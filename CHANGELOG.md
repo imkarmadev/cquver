@@ -11,7 +11,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - rename release command ([fbb91c0])
 
-
 ## [Unreleased]
 
 ## [1.0.0] - 2025-06-20
