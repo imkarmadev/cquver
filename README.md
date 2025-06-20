@@ -198,11 +198,13 @@ apps/chat-service/
     ├── application/                        # 🏗️ CQRS Application Layer
     │   ├── commands/                       # Command handlers (created when generating)
     │   ├── events/                         # Event handlers (created when generating)
-    │   └── queries/                        # Query handlers (created when generating)
+    │   ├── queries/                        # Query handlers (created when generating)
+    │   └── usecases/                       # Use cases / Application services
     ├── controllers/                        # 🎮 API Controllers
     ├── domain/                             # 🏛️ Domain Layer
     │   ├── constants/                      # Domain constants
-    │   └── entities/                       # Domain entities
+    │   ├── entities/                       # Domain entities
+    │   └── services/                       # Domain services
     ├── dto/                                # 📝 Data Transfer Objects
     │   ├── requests/                       # Request DTOs
     │   └── responses/                      # Response DTOs

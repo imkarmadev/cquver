@@ -1,4 +1,4 @@
-import { assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assert, assertStringIncludes } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import {
   eventHandlerTemplate,
   eventIndexTemplate,
@@ -6,6 +6,8 @@ import {
 } from '../src/templates/event.templates.ts';
 import { commandHandlerTemplate, commandTemplate } from '../src/templates/command.templates.ts';
 import { queryHandlerTemplate, queryTemplate } from '../src/templates/query.templates.ts';
+import { serviceIndexTemplate, serviceTemplate } from '../src/templates/service.templates.ts';
+import { usecaseIndexTemplate, usecaseTemplate } from '../src/templates/usecase.templates.ts';
 
 Deno.test('eventTemplate - generates correct event class', () => {
   const result = eventTemplate('UserCreatedEvent');
@@ -83,6 +85,43 @@ Deno.test('queryTemplate - generates correct query class', () => {
   assertStringIncludes(result, 'export class GetOrderQuery implements IQuery');
   assertStringIncludes(result, 'constructor(');
   assertStringIncludes(result, '// Add your query properties here');
+});
+
+Deno.test('serviceTemplate - generates correct service class', () => {
+  const content = serviceTemplate('UserValidatorService');
+
+  assert(content.includes('export class UserValidatorService'));
+  assert(content.includes('@Injectable()'));
+  assert(content.includes('import { Injectable }'));
+  assert(content.includes('// Add your domain business logic methods here'));
+});
+
+Deno.test('serviceIndexTemplate - generates correct service index exports', () => {
+  const content = serviceIndexTemplate('UserValidatorService', 'user-validator');
+
+  assert(content.includes("export { UserValidatorService } from './user-validator.service';"));
+});
+
+Deno.test('usecaseTemplate - generates correct usecase class', () => {
+  const content = usecaseTemplate('ProcessUserRegistrationUseCase');
+
+  assert(content.includes('export class ProcessUserRegistrationUseCase'));
+  assert(content.includes('@Injectable()'));
+  assert(content.includes('import { Injectable }'));
+  assert(content.includes('// Add your use case application logic here'));
+});
+
+Deno.test('usecaseIndexTemplate - generates correct usecase index exports', () => {
+  const content = usecaseIndexTemplate(
+    'ProcessUserRegistrationUseCase',
+    'process-user-registration',
+  );
+
+  assert(
+    content.includes(
+      "export { ProcessUserRegistrationUseCase } from './process-user-registration.usecase';",
+    ),
+  );
 });
 
 Deno.test('queryHandlerTemplate - generates correct query handler', () => {

@@ -58,10 +58,12 @@ Deno.test('CLI - fails with unsupported action', async () => {
 });
 
 Deno.test('CLI - fails with unsupported type', async () => {
-  const result = await runCLI(['test-service', 'create', 'service', 'TestService']);
+  const result = await runCLI(['test-service', 'create', 'repository', 'TestRepository']);
 
   assertEquals(result.code, 1);
-  assert(result.stderr.includes('Type must be "event", "command", or "query"'));
+  assert(
+    result.stderr.includes('Type must be "event", "command", "query", "service", or "usecase"'),
+  );
 });
 
 Deno.test('CLI - successfully creates event', async () => {
@@ -206,9 +208,11 @@ Deno.test('CLI - init command creates folder structure successfully', async () =
     assert(await exists('apps/chat-service/src/application/commands'));
     assert(await exists('apps/chat-service/src/application/events'));
     assert(await exists('apps/chat-service/src/application/queries'));
+    assert(await exists('apps/chat-service/src/application/usecases'));
     assert(await exists('apps/chat-service/src/domain'));
     assert(await exists('apps/chat-service/src/domain/constants'));
     assert(await exists('apps/chat-service/src/domain/entities'));
+    assert(await exists('apps/chat-service/src/domain/services'));
     assert(await exists('apps/chat-service/src/infrastructure'));
     assert(await exists('apps/chat-service/src/infrastructure/adapters'));
     assert(await exists('apps/chat-service/src/infrastructure/persistence'));
@@ -318,6 +322,71 @@ Deno.test('CLI - create commands work after init', async () => {
       'apps/order-service/src/application/queries/index.ts',
     );
     assert(queriesIndex.includes('GetOrderByIdQueryHandler'));
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - successfully creates service', async () => {
+  await cleanupTestApps();
+
+  try {
+    const result = await runCLI(['test-service', 'create', 'service', 'UserValidator']);
+
+    assertEquals(result.code, 0);
+    assert(
+      result.stdout.includes(
+        'Successfully generated service "UserValidator" for app "test-service"',
+      ),
+    );
+
+    // Verify files were created
+    assert(
+      await exists(
+        'apps/test-service/src/domain/services/user-validator/user-validator.service.ts',
+      ),
+    );
+    assert(await exists('apps/test-service/src/domain/services/index.ts'));
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - successfully creates usecase', async () => {
+  await cleanupTestApps();
+
+  try {
+    const result = await runCLI(['test-service', 'create', 'usecase', 'ProcessUserRegistration']);
+
+    assertEquals(result.code, 0);
+    assert(
+      result.stdout.includes(
+        'Successfully generated usecase "ProcessUserRegistration" for app "test-service"',
+      ),
+    );
+
+    // Verify files were created
+    assert(
+      await exists(
+        'apps/test-service/src/application/usecases/process-user-registration/process-user-registration.usecase.ts',
+      ),
+    );
+    assert(await exists('apps/test-service/src/application/usecases/index.ts'));
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - fails with unsupported type for new types', async () => {
+  await cleanupTestApps();
+
+  try {
+    const result = await runCLI(['test-service', 'create', 'repository', 'UserRepository']);
+
+    assertEquals(result.code, 1);
+    assert(
+      result.stderr.includes('Type must be "event", "command", "query", "service", or "usecase"'),
+    );
   } finally {
     await cleanupTestApps();
   }

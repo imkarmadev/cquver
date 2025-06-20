@@ -190,9 +190,11 @@ Deno.test('GeneratorService - initializeService creates correct folder structure
     assert(await exists(`apps/${appName}/src/application/commands`));
     assert(await exists(`apps/${appName}/src/application/events`));
     assert(await exists(`apps/${appName}/src/application/queries`));
+    assert(await exists(`apps/${appName}/src/application/usecases`));
     assert(await exists(`apps/${appName}/src/domain`));
     assert(await exists(`apps/${appName}/src/domain/constants`));
     assert(await exists(`apps/${appName}/src/domain/entities`));
+    assert(await exists(`apps/${appName}/src/domain/services`));
     assert(await exists(`apps/${appName}/src/infrastructure`));
     assert(await exists(`apps/${appName}/src/infrastructure/adapters`));
     assert(await exists(`apps/${appName}/src/infrastructure/persistence`));
@@ -261,6 +263,84 @@ Deno.test('GeneratorService - initializeService works with existing structure', 
 
     const fileContent = await Deno.readTextFile(`apps/${appName}/src/existing-file.ts`);
     assertEquals(fileContent, 'export const test = true;');
+  } finally {
+    await cleanupTestDir(appName);
+  }
+});
+
+Deno.test('GeneratorService - creates service with correct structure', async () => {
+  const appName = 'test-service';
+  const generator = new GeneratorService();
+
+  await cleanupTestDir(appName);
+  await setupTestDir();
+
+  try {
+    // Generate service
+    await generator.generate(appName, 'service', 'UserValidator');
+
+    // Check directory structure
+    assert(await exists(`apps/${appName}/src/domain/services/user-validator`));
+    assert(
+      await exists(`apps/${appName}/src/domain/services/user-validator/user-validator.service.ts`),
+    );
+    assert(await exists(`apps/${appName}/src/domain/services/user-validator/index.ts`));
+    assert(await exists(`apps/${appName}/src/domain/services/index.ts`));
+    assert(await exists(`apps/${appName}/src/${appName}.module.ts`));
+
+    // Check file contents
+    const serviceFile = await Deno.readTextFile(
+      `apps/${appName}/src/domain/services/user-validator/user-validator.service.ts`,
+    );
+    assert(serviceFile.includes('export class UserValidatorService'));
+    assert(serviceFile.includes('@Injectable()'));
+
+    const servicesIndex = await Deno.readTextFile(`apps/${appName}/src/domain/services/index.ts`);
+    assert(servicesIndex.includes('export const Services = ['));
+    assert(servicesIndex.includes('UserValidatorService'));
+    assert(servicesIndex.includes('export { UserValidatorService }'));
+  } finally {
+    await cleanupTestDir(appName);
+  }
+});
+
+Deno.test('GeneratorService - creates usecase with correct structure', async () => {
+  const appName = 'test-service';
+  const generator = new GeneratorService();
+
+  await cleanupTestDir(appName);
+  await setupTestDir();
+
+  try {
+    // Generate usecase
+    await generator.generate(appName, 'usecase', 'ProcessUserRegistration');
+
+    // Check directory structure
+    assert(await exists(`apps/${appName}/src/application/usecases/process-user-registration`));
+    assert(
+      await exists(
+        `apps/${appName}/src/application/usecases/process-user-registration/process-user-registration.usecase.ts`,
+      ),
+    );
+    assert(
+      await exists(`apps/${appName}/src/application/usecases/process-user-registration/index.ts`),
+    );
+    assert(await exists(`apps/${appName}/src/application/usecases/index.ts`));
+    assert(await exists(`apps/${appName}/src/${appName}.module.ts`));
+
+    // Check file contents
+    const usecaseFile = await Deno.readTextFile(
+      `apps/${appName}/src/application/usecases/process-user-registration/process-user-registration.usecase.ts`,
+    );
+    assert(usecaseFile.includes('export class ProcessUserRegistrationUseCase'));
+    assert(usecaseFile.includes('@Injectable()'));
+
+    const usecasesIndex = await Deno.readTextFile(
+      `apps/${appName}/src/application/usecases/index.ts`,
+    );
+    assert(usecasesIndex.includes('export const UseCases = ['));
+    assert(usecasesIndex.includes('ProcessUserRegistrationUseCase'));
+    assert(usecasesIndex.includes('export { ProcessUserRegistrationUseCase }'));
   } finally {
     await cleanupTestDir(appName);
   }

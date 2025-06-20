@@ -14,6 +14,8 @@ import {
   queryIndexTemplate,
   queryTemplate,
 } from './templates/query.templates.ts';
+import { serviceIndexTemplate, serviceTemplate } from './templates/service.templates.ts';
+import { usecaseIndexTemplate, usecaseTemplate } from './templates/usecase.templates.ts';
 import {
   ensureDir,
   ensureSuffix,
@@ -53,11 +55,13 @@ export class GeneratorService {
     const commandsPath = join(applicationPath, 'commands');
     const eventsPath = join(applicationPath, 'events');
     const queriesPath = join(applicationPath, 'queries');
+    const usecasesPath = join(applicationPath, 'usecases');
 
     // Create domain layer structure
     const domainPath = join(basePath, 'domain');
     const constantsPath = join(domainPath, 'constants');
     const entitiesPath = join(domainPath, 'entities');
+    const servicesPath = join(domainPath, 'services');
 
     // Create infrastructure layer structure
     const infrastructurePath = join(basePath, 'infrastructure');
@@ -71,45 +75,50 @@ export class GeneratorService {
     const responsesPath = join(dtoPath, 'responses');
     const portsPath = join(basePath, 'ports');
 
-    // Create all directories
+    // Helper function to create directory and log appropriate message
+    const createDirectoryWithLog = async (path: string): Promise<void> => {
+      try {
+        await Deno.stat(path);
+        console.log(`📁 Directory already exists: ${path}`);
+      } catch (error) {
+        if (error instanceof Deno.errors.NotFound) {
+          await ensureDir(path);
+          console.log(`📁 Created directory: ${path}`);
+        } else {
+          throw error;
+        }
+      }
+    };
+
+    // Create all directories with appropriate logging
     await Promise.all([
       // Application layer
-      ensureDir(commandsPath),
-      ensureDir(eventsPath),
-      ensureDir(queriesPath),
+      createDirectoryWithLog(applicationPath),
+      createDirectoryWithLog(commandsPath),
+      createDirectoryWithLog(eventsPath),
+      createDirectoryWithLog(queriesPath),
+      createDirectoryWithLog(usecasesPath),
       // Domain layer
-      ensureDir(constantsPath),
-      ensureDir(entitiesPath),
+      createDirectoryWithLog(domainPath),
+      createDirectoryWithLog(constantsPath),
+      createDirectoryWithLog(entitiesPath),
+      createDirectoryWithLog(servicesPath),
       // Infrastructure layer
-      ensureDir(adaptersPath),
-      ensureDir(persistencePath),
+      createDirectoryWithLog(infrastructurePath),
+      createDirectoryWithLog(adaptersPath),
+      createDirectoryWithLog(persistencePath),
       // Other layers
-      ensureDir(controllersPath),
-      ensureDir(requestsPath),
-      ensureDir(responsesPath),
-      ensureDir(portsPath),
+      createDirectoryWithLog(controllersPath),
+      createDirectoryWithLog(dtoPath),
+      createDirectoryWithLog(requestsPath),
+      createDirectoryWithLog(responsesPath),
+      createDirectoryWithLog(portsPath),
     ]);
-
-    console.log(`📁 Created directory: ${applicationPath}`);
-    console.log(`📁 Created directory: ${commandsPath}`);
-    console.log(`📁 Created directory: ${eventsPath}`);
-    console.log(`📁 Created directory: ${queriesPath}`);
-    console.log(`📁 Created directory: ${domainPath}`);
-    console.log(`📁 Created directory: ${constantsPath}`);
-    console.log(`📁 Created directory: ${entitiesPath}`);
-    console.log(`📁 Created directory: ${infrastructurePath}`);
-    console.log(`📁 Created directory: ${adaptersPath}`);
-    console.log(`📁 Created directory: ${persistencePath}`);
-    console.log(`📁 Created directory: ${controllersPath}`);
-    console.log(`📁 Created directory: ${dtoPath}`);
-    console.log(`📁 Created directory: ${requestsPath}`);
-    console.log(`📁 Created directory: ${responsesPath}`);
-    console.log(`📁 Created directory: ${portsPath}`);
   }
 
   async generate(
     appName: string,
-    type: 'event' | 'command' | 'query',
+    type: 'event' | 'command' | 'query' | 'service' | 'usecase',
     name: string,
   ): Promise<void> {
     // Normalize the class name with proper suffix
@@ -120,14 +129,14 @@ export class GeneratorService {
     const baseFileName = toKebabCase(name);
     const folderName = toKebabCase(name);
 
-    // Create directory path (use plural folder names)
+    // Create directory path based on type
     const typeFolder = this.getTypeFolderName(type);
-    const basePath = join('apps', appName, 'src', 'application', typeFolder, folderName);
+    const layerPath = this.getLayerPath(type);
+    const basePath = join('apps', appName, 'src', layerPath, typeFolder, folderName);
     await ensureDir(basePath);
 
     // Generate file paths
     const mainFilePath = join(basePath, `${baseFileName}.${type}.ts`);
-    const handlerFilePath = join(basePath, `${baseFileName}.handler.ts`);
     const indexFilePath = join(basePath, 'index.ts');
 
     // Generate content based on type
@@ -138,28 +147,47 @@ export class GeneratorService {
       baseFileName,
     );
 
-    // Write files
-    await Promise.all([
+    // Write files (handlers only for event, command, query)
+    const writePromises = [
       Deno.writeTextFile(mainFilePath, mainContent),
-      Deno.writeTextFile(handlerFilePath, handlerContent),
       Deno.writeTextFile(indexFilePath, indexContent),
-    ]);
+    ];
+
+    if (handlerContent) {
+      const handlerFilePath = join(basePath, `${baseFileName}.handler.ts`);
+      writePromises.push(Deno.writeTextFile(handlerFilePath, handlerContent));
+      console.log(`📄 Created file: ${handlerFilePath}`);
+    }
+
+    await Promise.all(writePromises);
 
     console.log(`📁 Created directory: ${basePath}`);
     console.log(`📄 Created file: ${mainFilePath}`);
-    console.log(`📄 Created file: ${handlerFilePath}`);
     console.log(`📄 Created file: ${indexFilePath}`);
 
-    // Update type index and module files
-    await this.moduleManager.updateTypeIndex(appName, typeFolder, type, {
-      name: handlerName,
-      path: `./${folderName}`,
-    });
+    // Update type index and module files only for CQRS types
+    if (['event', 'command', 'query'].includes(type)) {
+      await this.moduleManager.updateTypeIndex(
+        appName,
+        typeFolder,
+        type as 'event' | 'command' | 'query',
+        {
+          name: handlerName,
+          path: `./${folderName}`,
+        },
+      );
+    } else {
+      // For services and usecases, create separate index management
+      await this.moduleManager.updateNonCQRSTypeIndex(appName, typeFolder, {
+        name: className,
+        path: `./${folderName}`,
+      });
+    }
 
     await this.moduleManager.updateServiceModule(appName);
   }
 
-  private getSuffix(type: 'event' | 'command' | 'query'): string {
+  private getSuffix(type: 'event' | 'command' | 'query' | 'service' | 'usecase'): string {
     switch (type) {
       case 'event':
         return 'Event';
@@ -167,15 +195,19 @@ export class GeneratorService {
         return 'Command';
       case 'query':
         return 'Query';
+      case 'service':
+        return 'Service';
+      case 'usecase':
+        return 'UseCase';
     }
   }
 
   private getTemplates(
-    type: 'event' | 'command' | 'query',
+    type: 'event' | 'command' | 'query' | 'service' | 'usecase',
     className: string,
     handlerName: string,
     fileName: string,
-  ): { mainContent: string; handlerContent: string; indexContent: string } {
+  ): { mainContent: string; handlerContent?: string; indexContent: string } {
     switch (type) {
       case 'event':
         return {
@@ -195,10 +227,20 @@ export class GeneratorService {
           handlerContent: queryHandlerTemplate(className, handlerName, fileName),
           indexContent: queryIndexTemplate(className, handlerName, fileName),
         };
+      case 'service':
+        return {
+          mainContent: serviceTemplate(className),
+          indexContent: serviceIndexTemplate(className, fileName),
+        };
+      case 'usecase':
+        return {
+          mainContent: usecaseTemplate(className),
+          indexContent: usecaseIndexTemplate(className, fileName),
+        };
     }
   }
 
-  private getTypeFolderName(type: 'event' | 'command' | 'query'): string {
+  private getTypeFolderName(type: 'event' | 'command' | 'query' | 'service' | 'usecase'): string {
     switch (type) {
       case 'event':
         return 'events';
@@ -206,6 +248,22 @@ export class GeneratorService {
         return 'commands';
       case 'query':
         return 'queries';
+      case 'service':
+        return 'services';
+      case 'usecase':
+        return 'usecases';
+    }
+  }
+
+  private getLayerPath(type: 'event' | 'command' | 'query' | 'service' | 'usecase'): string {
+    switch (type) {
+      case 'event':
+      case 'command':
+      case 'query':
+      case 'usecase':
+        return 'application';
+      case 'service':
+        return 'domain';
     }
   }
 }

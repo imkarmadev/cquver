@@ -28,10 +28,14 @@ function showHelp() {
   command, cmd              Generate command handler
   query, q                  Generate query handler  
   event, e                  Generate event handler
+  service, s                Generate domain service
+  usecase, u                Generate use case
 
 ✨ Examples:
   cquver create command CreateUser user-service
   cquver generate query GetUser user-service
+  cquver create service UserValidator user-service
+  cquver create usecase ProcessUserRegistration user-service
   cquver init user-service
 
 💡 Tips:
@@ -88,14 +92,14 @@ async function main() {
         Deno.exit(1);
       }
 
-      if (!['event', 'command', 'query'].includes(type as string)) {
-        console.error('❌ Type must be "event", "command", or "query".');
+      if (!['event', 'command', 'query', 'service', 'usecase'].includes(type as string)) {
+        console.error('❌ Type must be "event", "command", "query", "service", or "usecase".');
         Deno.exit(1);
       }
 
       await generator.generate(
         appName as string,
-        type as 'event' | 'command' | 'query',
+        type as 'event' | 'command' | 'query' | 'service' | 'usecase',
         name as string,
       );
       console.log(`✅ Successfully generated ${type} "${name}" for app "${appName}"`);

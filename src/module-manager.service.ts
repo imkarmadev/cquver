@@ -13,6 +13,36 @@ export interface ClassInfo {
 
 export class ModuleManagerService {
   /**
+   * Updates or creates index file for non-CQRS types (services/usecases)
+   */
+  async updateNonCQRSTypeIndex(
+    appName: string,
+    typeFolder: string,
+    newService: HandlerInfo,
+  ): Promise<void> {
+    const layerPath = typeFolder === 'services' ? 'domain' : 'application';
+    const typePath = join('apps', appName, 'src', layerPath, typeFolder);
+    const indexPath = join(typePath, 'index.ts');
+
+    // Get all existing services/usecases
+    const services = await this.getAllServices(typePath);
+
+    // Add new service if not already present
+    const exists = services.some((s) => s.name === newService.name);
+    if (!exists) {
+      services.push(newService);
+    }
+
+    // Generate index content
+    const indexContent = this.generateServiceIndexContent(typeFolder, services);
+
+    // Write index file
+    await ensureDir(typePath);
+    await Deno.writeTextFile(indexPath, indexContent);
+    console.log(`📄 Updated index: ${indexPath}`);
+  }
+
+  /**
    * Updates or creates index file for a specific type (commands/events/queries)
    */
   async updateTypeIndex(
@@ -197,6 +227,8 @@ import { CqrsModule } from '@nestjs/cqrs';
 import { CommandHandlers } from './application/commands';
 import { EventHandlers } from './application/events';
 import { QueryHandlers } from './application/queries';
+import { UseCases } from './application/usecases';
+import { Services } from './domain/services';
 
 @Module({
   imports: [CqrsModule],
@@ -204,6 +236,8 @@ import { QueryHandlers } from './application/queries';
     ...CommandHandlers,
     ...EventHandlers,
     ...QueryHandlers,
+    ...UseCases,
+    ...Services,
   ],
 })
 export class ${className} {}
@@ -286,6 +320,8 @@ export class ${className} {}
       "import { CommandHandlers } from './application/commands';",
       "import { EventHandlers } from './application/events';",
       "import { QueryHandlers } from './application/queries';",
+      "import { UseCases } from './application/usecases';",
+      "import { Services } from './domain/services';",
     ];
 
     let updatedContent = content;
@@ -306,7 +342,13 @@ export class ${className} {}
     }
 
     // Add handler arrays to providers if not present
-    const handlerArrays = ['...CommandHandlers', '...EventHandlers', '...QueryHandlers'];
+    const handlerArrays = [
+      '...CommandHandlers',
+      '...EventHandlers',
+      '...QueryHandlers',
+      '...UseCases',
+      '...Services',
+    ];
 
     for (const handlerArray of handlerArrays) {
       if (!updatedContent.includes(handlerArray)) {
@@ -345,5 +387,78 @@ export class ${className} {}
     }
 
     return updatedContent;
+  }
+
+  /**
+   * Gets all existing services/usecases from the specified directory
+   */
+  private async getAllServices(typePath: string): Promise<HandlerInfo[]> {
+    const services: HandlerInfo[] = [];
+    try {
+      for await (const entry of Deno.readDir(typePath)) {
+        if (entry.isDirectory) {
+          // Try to find service/usecase files
+          const serviceFiles = [`${entry.name}.service.ts`, `${entry.name}.usecase.ts`];
+          for (const fileName of serviceFiles) {
+            const filePath = join(typePath, entry.name, fileName);
+            try {
+              const content = await Deno.readTextFile(filePath);
+              const className = this.extractServiceClassName(content);
+              if (className) {
+                services.push({
+                  name: className,
+                  path: `./${entry.name}`,
+                });
+                break; // Found the service/usecase file
+              }
+            } catch {
+              // File doesn't exist, continue
+            }
+          }
+        }
+      }
+    } catch {
+      // Directory doesn't exist yet
+    }
+    return services;
+  }
+
+  /**
+   * Extracts service/usecase class name from file content
+   */
+  private extractServiceClassName(content: string): string | null {
+    const match = content.match(/export class (\w+(?:Service|UseCase))/);
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Generates content for service/usecase index file
+   */
+  private generateServiceIndexContent(typeFolder: string, services: HandlerInfo[]): string {
+    const typeCapitalized = typeFolder === 'services' ? 'Services' : 'UseCases';
+
+    let content = '';
+
+    // Add imports for services/usecases
+    for (const service of services) {
+      content += `import { ${service.name} } from '${service.path}';\n`;
+    }
+
+    content += '\n';
+
+    // Add service array export
+    content += `export const ${typeCapitalized} = [\n`;
+    for (const service of services) {
+      content += `  ${service.name},\n`;
+    }
+    content += '];\n\n';
+
+    // Add individual exports
+    content += `// Export all ${typeFolder}\n`;
+    for (const service of services) {
+      content += `export { ${service.name} };\n`;
+    }
+
+    return content;
   }
 }
