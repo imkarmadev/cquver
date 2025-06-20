@@ -149,147 +149,339 @@ Then initialize the DDD/Clean Architecture folder structure:
 cquver <app_name> init
 ```
 
-### Generate Components
+### Available Commands
+
+#### **📋 General Commands**
 
 ```bash
-cquver <app_name> create <type> <n>
+cquver --help, -h           # Show help information
+cquver --version, -v        # Show version information
+cquver <app_name> init      # Initialize DDD/Clean Architecture structure
 ```
 
-### Parameters
-
-- `<app_name>`: The name of your NestJS application (must exist in apps/ directory)
-- `<type>`: One of `event`, `command`, or `query`
-- `<n>`: The name of the event/command/query (will be normalized)
-
-### Examples
+#### **🎯 CQRS Components (Application Layer)**
 
 ```bash
-# Initialize service structure
+# Commands - Write operations that change state
+cquver <app_name> create command <CommandName>
+
+# Queries - Read operations that return data  
+cquver <app_name> create query <QueryName>
+
+# Events - Domain events for side effects
+cquver <app_name> create event <EventName>
+```
+
+#### **🏗️ Architecture Components**
+
+```bash
+# Domain Services - Business logic in domain layer
+cquver <app_name> create service <ServiceName>
+
+# Use Cases - Application services that orchestrate operations
+cquver <app_name> create usecase <UseCaseName>
+```
+
+### Command Parameters
+
+- `<app_name>`: The name of your NestJS application (must exist in apps/ directory)
+- `<type>`: One of `command`, `query`, `event`, `service`, or `usecase`
+- `<name>`: The name of the component (will be automatically normalized)
+
+### Complete Examples
+
+#### **🚀 Project Setup**
+
+```bash
+# 1. Create NestJS app
+nest generate app user-service
+
+# 2. Initialize DDD structure
 cquver user-service init
+```
 
-# Generate an event
+#### **📝 CQRS Components**
+
+```bash
+# Commands (write operations)
+cquver user-service create command CreateUser
+cquver user-service create command UpdateUserProfile
+cquver user-service create command DeleteUser
+
+# Queries (read operations)
+cquver user-service create query GetUserById
+cquver user-service create query FindUsersByRole
+cquver user-service create query GetUserStatistics
+
+# Events (domain events)
 cquver user-service create event UserCreated
-cquver user-service create event user-updated-event
+cquver user-service create event UserProfileUpdated
+cquver user-service create event UserDeleted
+```
 
-# Generate a command  
-cquver auth-service create command CreateUser
-cquver auth-service create command authenticate-user-command
+#### **🏛️ Domain & Application Components**
 
-# Generate a query
-cquver order-service create query GetOrder
-cquver order-service create query find-orders-by-user-query
+```bash
+# Domain Services (business logic)
+cquver user-service create service UserValidator
+cquver user-service create service PasswordHasher
+cquver user-service create service EmailNotificationService
+
+# Use Cases (application orchestration)
+cquver user-service create usecase RegisterNewUser
+cquver user-service create usecase ProcessUserVerification
+cquver user-service create usecase GenerateUserReport
+```
+
+#### **🎨 Naming Flexibility**
+
+```bash
+# All naming formats are automatically normalized:
+cquver user-service create command create-user        # ✅ kebab-case
+cquver user-service create command CreateUser         # ✅ PascalCase  
+cquver user-service create command create_user        # ✅ snake_case
+cquver user-service create event user-profile-updated # ✅ All become proper format
 ```
 
 ## Generated Structure
 
-For example, running:
+### Complete Project Structure
+
+After running `cquver your-service init`, you get this DDD/Clean Architecture structure:
+
+```
+apps/your-service/
+└── src/
+    ├── application/                        # 🏗️ Application Layer (CQRS + Use Cases)
+    │   ├── commands/                       # 📝 Command handlers (write operations)
+    │   ├── events/                         # 📡 Event handlers (side effects)  
+    │   ├── queries/                        # 🔍 Query handlers (read operations)
+    │   └── usecases/                       # 🎯 Use cases (orchestration logic)
+    ├── controllers/                        # 🎮 API Controllers (presentation layer)
+    ├── domain/                             # 🏛️ Domain Layer (business core)
+    │   ├── constants/                      # 📋 Domain constants
+    │   ├── entities/                       # 🏗️ Domain entities
+    │   └── services/                       # ⚙️ Domain services (business logic)
+    ├── dto/                                # 📦 Data Transfer Objects
+    │   ├── requests/                       # ⬇️ Request DTOs
+    │   └── responses/                      # ⬆️ Response DTOs
+    ├── infrastructure/                     # 🔧 Infrastructure Layer
+    │   ├── adapters/                       # 🔌 External service adapters
+    │   └── persistence/                    # 💾 Database persistence
+    └── ports/                              # 🚪 Repository interfaces
+```
+
+### Example: Complete Service Generation
 
 ```bash
-cquver socket-service create event ConnectWebSocket
-cquver socket-service create command DisconnectWebSocket
-cquver socket-service create query GetConnectionStatus
+# Initialize structure
+cquver user-service init
+
+# Generate CQRS components
+cquver user-service create command CreateUser
+cquver user-service create event UserCreated  
+cquver user-service create query GetUserById
+
+# Generate architecture components
+cquver user-service create service UserValidator
+cquver user-service create usecase RegisterUser
 ```
 
-Will create:
+**Results in:**
 
 ```
-apps/chat-service/
-└── src/
-    ├── application/                        # 🏗️ CQRS Application Layer
-    │   ├── commands/                       # Command handlers (created when generating)
-    │   ├── events/                         # Event handlers (created when generating)
-    │   ├── queries/                        # Query handlers (created when generating)
-    │   └── usecases/                       # Use cases / Application services
-    ├── controllers/                        # 🎮 API Controllers
-    ├── domain/                             # 🏛️ Domain Layer
-    │   ├── constants/                      # Domain constants
-    │   ├── entities/                       # Domain entities
-    │   └── services/                       # Domain services
-    ├── dto/                                # 📝 Data Transfer Objects
-    │   ├── requests/                       # Request DTOs
-    │   └── responses/                      # Response DTOs
-    ├── infrastructure/                     # 🔧 Infrastructure Layer
-    │   ├── adapters/                       # External adapters
-    │   └── persistence/                    # Database persistence layer
-    └── ports/                              # 🔌 Repository Interfaces
-
-# Note: Additional files and folders (like mongodb/, test/, config files) 
-# should be created using NestJS CLI or other specific commands as needed.
+apps/user-service/src/
+├── application/
+│   ├── commands/
+│   │   ├── create-user/
+│   │   │   ├── create-user.command.ts       # Command class
+│   │   │   ├── create-user.handler.ts       # Command handler
+│   │   │   └── index.ts                     # Exports
+│   │   └── index.ts                         # CommandHandlers array
+│   ├── events/
+│   │   ├── user-created/
+│   │   │   ├── user-created.event.ts        # Event class  
+│   │   │   ├── user-created.handler.ts      # Event handler
+│   │   │   └── index.ts                     # Exports
+│   │   └── index.ts                         # EventHandlers array
+│   ├── queries/
+│   │   ├── get-user-by-id/
+│   │   │   ├── get-user-by-id.query.ts      # Query class
+│   │   │   ├── get-user-by-id.handler.ts    # Query handler  
+│   │   │   └── index.ts                     # Exports
+│   │   └── index.ts                         # QueryHandlers array
+│   └── usecases/
+│       ├── register-user/
+│       │   ├── register-user.usecase.ts     # Use case class
+│       │   └── index.ts                     # Exports
+│       └── index.ts                         # UseCases array
+├── domain/
+│   └── services/
+│       ├── user-validator/
+│       │   ├── user-validator.service.ts    # Domain service
+│       │   └── index.ts                     # Exports
+│       └── index.ts                         # Services array
+└── user-service.module.ts                   # Auto-updated main module
 ```
 
-### Generated Files
+### Generated Files & Templates
 
-#### Handler Arrays
+#### 📝 CQRS Components
 
-The CLI automatically creates and maintains handler arrays in each type's index file:
+**Command Example:**
 
 ```typescript
-// apps/socket-service/src/application/commands/index.ts
-import { DisconnectWebSocketCommandHandler } from './disconnect-web-socket';
-import { UpdatePresenceStatusCommandHandler } from './update-presence-status';
+// create-user.command.ts
+import { ICommand } from '@nestjs/cqrs';
 
-export const CommandHandlers = [
-  DisconnectWebSocketCommandHandler,
-  UpdatePresenceStatusCommandHandler,
-];
-```
-
-#### Auto-Generated Module
-
-```typescript
-// apps/socket-service/src/socket-service.module.ts
-import { Module } from '@nestjs/common';
-import { CqrsModule } from '@nestjs/cqrs';
-import { CommandHandlers } from './application/commands';
-import { EventHandlers } from './application/events';
-import { QueryHandlers } from './application/queries';
-
-@Module({
-  imports: [CqrsModule],
-  providers: [
-    ...CommandHandlers,
-    ...EventHandlers,
-    ...QueryHandlers,
-  ],
-})
-export class SocketServiceModule {}
-```
-
-#### Event Example
-
-```typescript
-// user-created-event.event.ts
-import { IEvent } from '@nestjs/cqrs';
-
-export class UserCreatedEvent implements IEvent {
+export class CreateUserCommand implements ICommand {
   constructor(
-    // Add your event properties here
-    // public readonly id: string,
-    // public readonly userId: string,
+    // Add your command properties here
+    // public readonly data: CreateUserDto,
   ) {}
 }
 ```
 
 ```typescript
-// user-created-event.handler.ts
-import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { UserCreatedEvent } from './user-created-event.event';
+// create-user.handler.ts
+import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
+import { CreateUserCommand } from './create-user.command';
 
-@EventsHandler(UserCreatedEvent)
-export class UserCreatedEventHandler implements IEventHandler<UserCreatedEvent> {
-  async handle(event: UserCreatedEvent): Promise<void> {
-    // Handle the event here
-    console.log('Handling event:', event);
+@CommandHandler(CreateUserCommand)
+export class CreateUserCommandHandler implements ICommandHandler<CreateUserCommand> {
+  constructor(
+    // Inject your repositories, services, etc.
+  ) {}
 
-    // Example: Send notification, update read model, etc.
+  async execute(command: CreateUserCommand): Promise<any> {
+    // Handle the command here
   }
 }
 ```
 
+**Event Example:**
+
 ```typescript
-// index.ts
-export { UserCreatedEvent } from './user-created-event.event';
-export { UserCreatedEventHandler } from './user-created-event.handler';
+// user-created.event.ts
+import { IEvent } from '@nestjs/cqrs';
+
+export class UserCreatedEvent implements IEvent {
+  constructor(
+    // Add your event properties here
+    // public readonly userId: string,
+  ) {}
+}
+```
+
+**Query Example:**
+
+```typescript
+// get-user-by-id.query.ts
+import { IQuery } from '@nestjs/cqrs';
+
+export class GetUserByIdQuery implements IQuery {
+  constructor(
+    // Add your query properties here
+    // public readonly userId: string,
+  ) {}
+}
+```
+
+#### 🏗️ Architecture Components
+
+**Domain Service Example:**
+
+```typescript
+// user-validator.service.ts
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class UserValidatorService {
+  constructor(
+    // Inject your repositories, other services, etc.
+    // private readonly userRepository: UserRepository,
+  ) {}
+
+  // Add your domain business logic methods here
+}
+```
+
+**Use Case Example:**
+
+```typescript
+// register-user.usecase.ts
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class RegisterUserUseCase {
+  constructor(
+    // Inject your repositories, domain services, etc.
+    // private readonly userRepository: UserRepository,
+    // private readonly userValidator: UserValidatorService,
+  ) {}
+
+  // Add your use case application logic here
+}
+```
+
+#### 📋 Auto-Generated Index Arrays
+
+**Handler Arrays (CQRS):**
+
+```typescript
+// commands/index.ts
+import { CreateUserCommandHandler } from './create-user';
+export const CommandHandlers = [CreateUserCommandHandler];
+export { CreateUserCommand } from './create-user';
+
+// events/index.ts
+import { UserCreatedEventHandler } from './user-created';
+export const EventHandlers = [UserCreatedEventHandler];
+export { UserCreatedEvent } from './user-created';
+
+// queries/index.ts
+import { GetUserByIdQueryHandler } from './get-user-by-id';
+export const QueryHandlers = [GetUserByIdQueryHandler];
+export { GetUserByIdQuery } from './get-user-by-id';
+```
+
+**Service Arrays (Architecture):**
+
+```typescript
+// domain/services/index.ts
+import { UserValidatorService } from './user-validator';
+export const Services = [UserValidatorService];
+export { UserValidatorService };
+
+// application/usecases/index.ts
+import { RegisterUserUseCase } from './register-user';
+export const UseCases = [RegisterUserUseCase];
+export { RegisterUserUseCase };
+```
+
+#### 🏗️ Auto-Generated Module
+
+```typescript
+// user-service.module.ts
+import { Module } from '@nestjs/common';
+import { CqrsModule } from '@nestjs/cqrs';
+import { CommandHandlers } from './application/commands';
+import { EventHandlers } from './application/events';
+import { QueryHandlers } from './application/queries';
+import { UseCases } from './application/usecases';
+import { Services } from './domain/services';
+
+@Module({
+  imports: [CqrsModule],
+  providers: [
+    ...CommandHandlers, // CQRS command handlers
+    ...EventHandlers, // CQRS event handlers
+    ...QueryHandlers, // CQRS query handlers
+    ...UseCases, // Application use cases
+    ...Services, // Domain services
+  ],
+})
+export class UserServiceModule {}
 ```
 
 ## Development

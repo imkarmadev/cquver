@@ -75,8 +75,8 @@ function parseCommit(commitLine: string): ChangelogEntry | null {
 
 async function getCommitsSinceLastTag(): Promise<string[]> {
   try {
-    // Get the last tag
-    const lastTag = await runCommand(['git', 'describe', '--tags', '--abbrev=0']);
+    // Get the last tag that is reachable from HEAD
+    const lastTag = await runCommand(['git', 'describe', '--tags', '--abbrev=0', 'HEAD']);
 
     // Get commits since last tag
     const commits = await runCommand([
@@ -89,6 +89,26 @@ async function getCommitsSinceLastTag(): Promise<string[]> {
 
     return commits ? commits.split('\n').filter((line) => line.trim()) : [];
   } catch {
+    try {
+      // Fallback: get latest tag on current branch
+      const allTags = await runCommand(['git', 'tag', '--merged', 'HEAD', '--sort=-version:refname']);
+      const latestTag = allTags.split('\n')[0].trim();
+      
+      if (latestTag) {
+        const commits = await runCommand([
+          'git',
+          'log',
+          `${latestTag}..HEAD`,
+          '--oneline',
+          '--no-merges',
+        ]);
+        
+        return commits ? commits.split('\n').filter((line) => line.trim()) : [];
+      }
+    } catch {
+      // Ignore fallback errors
+    }
+    
     // If no tags exist, get all commits
     const commits = await runCommand(['git', 'log', '--oneline', '--no-merges']);
     return commits ? commits.split('\n').filter((line) => line.trim()) : [];
@@ -190,16 +210,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 async function main() {
   const args = Deno.args;
 
-  if (args.length === 0) {
-    console.error('Usage: deno run generate-changelog.ts <version>');
+  // Parse command line arguments
+  const isDryRun = args.includes('--dry-run');
+  const versionArg = args.find(arg => !arg.startsWith('--'));
+
+  if (!versionArg && !isDryRun) {
+    console.error('Usage: deno run generate-changelog.ts <version> [--dry-run]');
     console.error('Example: deno run generate-changelog.ts v1.2.0');
+    console.error('         deno run generate-changelog.ts v1.2.0 --dry-run');
+    console.error('         deno run generate-changelog.ts --dry-run  # Preview without version');
     Deno.exit(1);
   }
 
-  const newVersion = args[0].replace(/^v/, ''); // Remove 'v' prefix if present
+  const newVersion = versionArg ? versionArg.replace(/^v/, '') : 'preview'; // Remove 'v' prefix if present
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-  console.log(`📝 Generating changelog for version ${newVersion}...`);
+  console.log(`📝 ${isDryRun ? 'Previewing' : 'Generating'} changelog for version ${newVersion}...`);
 
   try {
     const commits = await getCommitsSinceLastTag();
@@ -208,37 +234,41 @@ async function main() {
       console.log('🔍 No new commits found since last release.');
 
       // Check if there's unreleased content to include in this version
-      const changelogPath = 'CHANGELOG.md';
-      try {
-        const existingContent = await Deno.readTextFile(changelogPath);
-        const unreleasedMatch = existingContent.match(/## \[Unreleased\]([\s\S]*?)(?=## \[|$)/);
+      if (!isDryRun) {
+        const changelogPath = 'CHANGELOG.md';
+        try {
+          const existingContent = await Deno.readTextFile(changelogPath);
+          const unreleasedMatch = existingContent.match(/## \[Unreleased\]([\s\S]*?)(?=## \[|$)/);
 
-        if (unreleasedMatch && unreleasedMatch[1].trim()) {
-          console.log('📋 Found unreleased content, creating release entry...');
+          if (unreleasedMatch && unreleasedMatch[1].trim()) {
+            console.log('📋 Found unreleased content, creating release entry...');
 
-          // Create release entry from unreleased content
-          const unreleasedContent = unreleasedMatch[1].trim();
-          const releaseContent = `## [${newVersion}] - ${date}\n\n${unreleasedContent}\n\n`;
+            // Create release entry from unreleased content
+            const unreleasedContent = unreleasedMatch[1].trim();
+            const releaseContent = `## [${newVersion}] - ${date}\n\n${unreleasedContent}\n\n`;
 
-          // Replace unreleased section with new release and clean unreleased
-          const updatedContent = existingContent
-            .replace(/## \[Unreleased\][\s\S]*?(?=## \[|$)/, `## [Unreleased]\n\n${releaseContent}`)
-            .replace(/\n{3,}/g, '\n\n'); // Clean up extra newlines
+            // Replace unreleased section with new release and clean unreleased
+            const updatedContent = existingContent
+              .replace(/## \[Unreleased\][\s\S]*?(?=## \[|$)/, `## [Unreleased]\n\n${releaseContent}`)
+              .replace(/\n{3,}/g, '\n\n'); // Clean up extra newlines
 
-          await Deno.writeTextFile(changelogPath, updatedContent);
-          console.log('✅ Changelog updated with unreleased content!');
+            await Deno.writeTextFile(changelogPath, updatedContent);
+            console.log('✅ Changelog updated with unreleased content!');
 
-          console.log('\n📖 New changelog entry:');
-          console.log('─'.repeat(50));
-          console.log(releaseContent);
-          console.log('─'.repeat(50));
-          return;
+            console.log('\n📖 New changelog entry:');
+            console.log('─'.repeat(50));
+            console.log(releaseContent);
+            console.log('─'.repeat(50));
+            return;
+          }
+        } catch {
+          // Ignore if changelog doesn't exist
         }
-      } catch {
-        // Ignore if changelog doesn't exist
-      }
 
-      console.log('📝 No unreleased content found either.');
+        console.log('📝 No unreleased content found either.');
+      } else {
+        console.log('👀 Dry run mode - skipping unreleased content check');
+      }
       return;
     }
 
@@ -259,9 +289,14 @@ async function main() {
     }
 
     const changelogContent = formatChangelog(newVersion, entries, date);
-    await updateChangelog(newVersion, changelogContent);
+    
+    if (!isDryRun) {
+      await updateChangelog(newVersion, changelogContent);
+      console.log('✅ Changelog updated successfully!');
+    } else {
+      console.log('👀 Dry run - would update changelog with new entries');
+    }
 
-    console.log('✅ Changelog updated successfully!');
     console.log('\n📖 New changelog entry:');
     console.log('─'.repeat(50));
     console.log(changelogContent);
