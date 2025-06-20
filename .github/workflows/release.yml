@@ -12,7 +12,7 @@ on:
         type: string
 
 env:
-  DENO_VERSION: v2.3.x
+  DENO_VERSION: v2.3.6
 
 jobs:
   test:
@@ -35,17 +35,8 @@ jobs:
           restore-keys: |
             deno-
 
-      - name: Run unit tests
-        run: deno task test:unit
-
-      - name: Run template tests
-        run: deno task test:unit
-
-      - name: Run integration tests
-        run: deno task test:integration
-
-      - name: Run end-to-end tests
-        run: deno task test:e2e
+      - name: Run all tests
+        run: deno task test
 
   build:
     name: Build CLI
@@ -196,6 +187,10 @@ jobs:
           # Check if we got meaningful content
           content_lines=$(grep -v '^#' release_notes.md | grep -v '^$' | wc -l)
           echo "Found $content_lines lines of content"
+
+          echo "=== Final release notes content ==="
+          cat release_notes.md
+          echo "=== End of release notes ==="
 
           if [ "$content_lines" -lt 3 ]; then
             echo "Adding default content to release notes"
