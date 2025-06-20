@@ -131,6 +131,16 @@ jobs:
         run: |
           deno run --allow-read --allow-write --allow-run scripts/generate-changelog.ts ${{ steps.tag.outputs.tag }}
 
+      - name: Debug changelog content
+        run: |
+          echo "=== CHANGELOG.md content after generation ==="
+          if [ -f CHANGELOG.md ]; then
+            head -30 CHANGELOG.md
+          else
+            echo "CHANGELOG.md not found!"
+          fi
+          echo "=== End of CHANGELOG.md debug ==="
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -148,9 +158,14 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
 
-      - name: Generate release notes
+                  - name: Generate release notes
         id: release_notes
         run: |
+          VERSION_NO_V="${{ steps.tag.outputs.tag }}"
+          VERSION_NO_V="${VERSION_NO_V#v}"
+
+          echo "Looking for version: $VERSION_NO_V"
+
           cat > release_notes.md << EOF
           # cquver ${{ steps.tag.outputs.tag }}
 
@@ -160,20 +175,42 @@ jobs:
 
           EOF
 
-          # Extract changelog section for this version
-          VERSION_NO_V="${{ steps.tag.outputs.tag }}"
-          VERSION_NO_V="${VERSION_NO_V#v}"
-
+                    # Extract changelog section for this version (now that it's been generated)
           if [ -f CHANGELOG.md ]; then
-            awk "/^## \[$VERSION_NO_V\]/{flag=1; next} /^## /{flag=0} flag" CHANGELOG.md >> release_notes.md
+            echo "Found CHANGELOG.md, extracting content for version: $VERSION_NO_V"
+
+            # Use awk to extract content between version headers
+            awk -v version="$VERSION_NO_V" '
+              $0 ~ "^## \\[" version "\\]" { found=1; next }
+              found && $0 ~ "^## \\[" { exit }
+              found && NF > 0 { print }
+              found && NF == 0 { print }
+            ' CHANGELOG.md >> release_notes.md
+
+            echo "Extracted changelog content:"
+            cat release_notes.md
           else
+            echo "CHANGELOG.md not found!"
+          fi
+
+          # Check if we got meaningful content
+          content_lines=$(grep -v '^#' release_notes.md | grep -v '^$' | wc -l)
+          echo "Found $content_lines lines of content"
+
+          if [ "$content_lines" -lt 3 ]; then
+            echo "Adding default content to release notes"
             cat >> release_notes.md << EOF
-          ## 🚀 Features
+
+          ### ✨ Features
           - Generate NestJS events, commands, and queries with proper CQRS structure
           - Automatic handler array management
           - Module file auto-updates while preserving existing code
           - Smart naming conventions (PascalCase classes, kebab-case files)
           - Plural folder organization (commands/, events/, queries/)
+
+          ### 🔧 Improvements
+          - Enhanced code quality with pre-push hooks
+          - Automated changelog generation from conventional commits
           EOF
           fi
 
