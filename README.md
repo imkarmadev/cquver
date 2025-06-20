@@ -384,3 +384,14 @@ This project now uses an automated workflow for quality assurance and releases:
 ### Workflow Test Status
 
 ✅ Workflow validation system implemented and tested
+✅ Version utility functions added for semantic versioning support
+
+### New Utility Functions
+
+The toolkit now includes utility functions for version management:
+
+- **`formatVersion(major, minor, patch, prerelease?)`** - Format semantic version strings
+- **`parseVersion(version)`** - Parse version strings into components
+- **`isValidConventionalCommit(message)`** - Validate conventional commit format
+
+These utilities support the automated release workflow and can be used in your own projects.
