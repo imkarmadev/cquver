@@ -132,14 +132,19 @@ export function parseVersion(version: string): {
     return null;
   }
 
-  const result = {
+  const result: {
+    major: number;
+    minor: number;
+    patch: number;
+    prerelease?: string;
+  } = {
     major: parseInt(match[1], 10),
     minor: parseInt(match[2], 10),
     patch: parseInt(match[3], 10),
   };
 
   if (match[4]) {
-    (result as any).prerelease = match[4];
+    result.prerelease = match[4];
   }
 
   return result;
