@@ -76,9 +76,9 @@ export function isValidConventionalCommit(commitMessage: string): boolean {
     return false;
   }
 
-  const prefix = commitMessage.split(':')[0];
+  const prefix = commitMessage.split(':')[0].trim();
   const type = prefix.replace(/\([^)]+\)/, '').replace('!', '');
-
+  
   const validTypes = [
     'feat',
     'fix',
@@ -92,7 +92,7 @@ export function isValidConventionalCommit(commitMessage: string): boolean {
     'chore',
     'revert',
   ];
-
+  
   return validTypes.includes(type);
 }
 
