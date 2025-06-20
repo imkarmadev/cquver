@@ -78,7 +78,7 @@ export function isValidConventionalCommit(commitMessage: string): boolean {
 
   const prefix = commitMessage.split(':')[0].trim();
   const type = prefix.replace(/\([^)]+\)/, '').replace('!', '');
-  
+
   const validTypes = [
     'feat',
     'fix',
@@ -92,14 +92,14 @@ export function isValidConventionalCommit(commitMessage: string): boolean {
     'chore',
     'revert',
   ];
-  
+
   return validTypes.includes(type);
 }
 
 /**
  * Formats a version string with proper semantic versioning
  * @param major - Major version number
- * @param minor - Minor version number  
+ * @param minor - Minor version number
  * @param patch - Patch version number
  * @param prerelease - Optional prerelease identifier
  * @returns Formatted version string
@@ -127,20 +127,20 @@ export function parseVersion(version: string): {
 } | null {
   const semverRegex = /^(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/;
   const match = version.match(semverRegex);
-  
+
   if (!match) {
     return null;
   }
-  
+
   const result = {
     major: parseInt(match[1], 10),
     minor: parseInt(match[2], 10),
     patch: parseInt(match[3], 10),
   };
-  
+
   if (match[4]) {
     (result as any).prerelease = match[4];
   }
-  
+
   return result;
 }

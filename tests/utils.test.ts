@@ -110,27 +110,27 @@ Deno.test('parseVersion - parses semantic version strings correctly', () => {
     minor: 0,
     patch: 0,
   });
-  
+
   assertEquals(parseVersion('2.5.10'), {
     major: 2,
     minor: 5,
     patch: 10,
   });
-  
+
   assertEquals(parseVersion('1.0.0-beta.1'), {
     major: 1,
     minor: 0,
     patch: 0,
     prerelease: 'beta.1',
   });
-  
+
   assertEquals(parseVersion('3.2.1-alpha'), {
     major: 3,
     minor: 2,
     patch: 1,
     prerelease: 'alpha',
   });
-  
+
   // Invalid versions
   assertEquals(parseVersion('invalid'), null);
   assertEquals(parseVersion('1.0'), null);
