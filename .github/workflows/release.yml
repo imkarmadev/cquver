@@ -110,6 +110,26 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for changelog generation
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+
+      - name: Get tag name
+        id: tag
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Generate changelog
+        run: |
+          deno run --allow-read --allow-write --allow-run scripts/generate-changelog.ts ${{ steps.tag.outputs.tag }}
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -121,15 +141,6 @@ jobs:
           mkdir -p ./release
           find ./artifacts -name "cquver-*" -type f -exec cp {} ./release/ \;
           ls -la ./release/
-
-      - name: Get tag name
-        id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          fi
 
       - name: Generate checksums
         run: |
@@ -145,12 +156,28 @@ jobs:
 
           NestJS DDD/CQRS Boilerplate Generator CLI
 
+          ## 📋 What's New
+
+          EOF
+
+          # Extract changelog section for this version
+          VERSION_NO_V="${{ steps.tag.outputs.tag }}"
+          VERSION_NO_V="${VERSION_NO_V#v}"
+
+          if [ -f CHANGELOG.md ]; then
+            awk "/^## \[$VERSION_NO_V\]/{flag=1; next} /^## /{flag=0} flag" CHANGELOG.md >> release_notes.md
+          else
+            cat >> release_notes.md << EOF
           ## 🚀 Features
           - Generate NestJS events, commands, and queries with proper CQRS structure
           - Automatic handler array management
           - Module file auto-updates while preserving existing code
           - Smart naming conventions (PascalCase classes, kebab-case files)
           - Plural folder organization (commands/, events/, queries/)
+          EOF
+          fi
+
+          cat >> release_notes.md << EOF
 
           ## 📦 Installation
 
@@ -237,14 +264,24 @@ jobs:
           sed -i 's/VERSION=".*"/VERSION="${{ steps.tag.outputs.tag }}"/' install.sh
           sed -i 's|REPO=".*"|REPO="${{ github.repository }}"|' install.sh
 
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+
+      - name: Generate and commit changelog
+        run: |
+          # Generate changelog for this version
+          deno run --allow-read --allow-write --allow-run scripts/generate-changelog.ts ${{ steps.tag.outputs.tag }}
+
       - name: Commit and push changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add install.sh
+          git add install.sh CHANGELOG.md
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Update install script to version ${{ steps.tag.outputs.tag }}"
+            git commit -m "chore: update install script and changelog for version ${{ steps.tag.outputs.tag }}"
             git push origin main
           fi

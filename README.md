@@ -22,6 +22,35 @@ _A Deno CLI tool that generates boilerplate code for NestJS monorepos using Doma
 - ✅ **Automatic module file updates** with provider arrays
 - ✅ **Multi-handler management** - automatically maintains handler collections
 
+## 📋 Changelog
+
+All notable changes are documented in [CHANGELOG.md](CHANGELOG.md). The changelog is automatically generated from conventional commits during releases.
+
+## 🤝 Contributing
+
+This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated changelog generation. We provide tools to make this easy:
+
+### Quick Setup for Contributors
+
+```bash
+# Set up git configuration and commit helpers
+deno task setup-git
+```
+
+### Making Commits
+
+```bash
+# Interactive conventional commit helper (recommended)
+deno task commit
+# or use the git alias
+git cc
+
+# Regular commit with template
+git commit
+```
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+
 ## Installation
 
 ### Prerequisites

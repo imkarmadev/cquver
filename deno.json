@@ -7,7 +7,13 @@
     "test:unit": "deno test --allow-read --allow-write tests/utils.test.ts tests/templates.test.ts",
     "test:integration": "deno test --allow-read --allow-write --allow-env tests/generator.test.ts",
     "test:e2e": "deno test --allow-read --allow-write --allow-env --allow-run tests/cli.test.ts",
-    "test:watch": "deno test --allow-read --allow-write --allow-env --allow-run --watch tests/"
+    "test:watch": "deno test --allow-read --allow-write --allow-env --allow-run --watch tests/",
+    "check": "deno fmt --check && deno lint && deno check cli.ts && deno task test",
+    "check:fix": "deno fmt && deno lint && deno check cli.ts && deno task test",
+    "changelog": "deno run --allow-read --allow-write --allow-run scripts/generate-changelog.ts",
+    "changelog:check": "deno run --allow-read --allow-run scripts/generate-changelog.ts --dry-run",
+    "commit": "deno run --allow-read --allow-write --allow-run scripts/commit.ts",
+    "setup-git": "deno run --allow-read --allow-write --allow-run scripts/setup-git.ts"
   },
   "fmt": {
     "useTabs": false,
