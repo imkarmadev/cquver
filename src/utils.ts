@@ -95,3 +95,52 @@ export function isValidConventionalCommit(commitMessage: string): boolean {
 
   return validTypes.includes(type);
 }
+
+/**
+ * Formats a version string with proper semantic versioning
+ * @param major - Major version number
+ * @param minor - Minor version number  
+ * @param patch - Patch version number
+ * @param prerelease - Optional prerelease identifier
+ * @returns Formatted version string
+ */
+export function formatVersion(
+  major: number,
+  minor: number,
+  patch: number,
+  prerelease?: string,
+): string {
+  const baseVersion = `${major}.${minor}.${patch}`;
+  return prerelease ? `${baseVersion}-${prerelease}` : baseVersion;
+}
+
+/**
+ * Parses a semantic version string into its components
+ * @param version - Version string to parse (e.g., "1.2.3" or "1.2.3-beta.1")
+ * @returns Object with version components or null if invalid
+ */
+export function parseVersion(version: string): {
+  major: number;
+  minor: number;
+  patch: number;
+  prerelease?: string;
+} | null {
+  const semverRegex = /^(\d+)\.(\d+)\.(\d+)(?:-(.+))?$/;
+  const match = version.match(semverRegex);
+  
+  if (!match) {
+    return null;
+  }
+  
+  const result = {
+    major: parseInt(match[1], 10),
+    minor: parseInt(match[2], 10),
+    patch: parseInt(match[3], 10),
+  };
+  
+  if (match[4]) {
+    (result as any).prerelease = match[4];
+  }
+  
+  return result;
+}

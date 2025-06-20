@@ -1,8 +1,10 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import {
   ensureSuffix,
+  formatVersion,
   generateHandlerName,
   isValidConventionalCommit,
+  parseVersion,
   toKebabCase,
   toPascalCase,
 } from '../src/utils.ts';
@@ -91,4 +93,47 @@ Deno.test('isValidConventionalCommit - validates conventional commit format', ()
   assertEquals(isValidConventionalCommit('add new feature'), false);
   assertEquals(isValidConventionalCommit(''), false);
   assertEquals(isValidConventionalCommit('unknown: some change'), false);
+});
+
+Deno.test('formatVersion - formats semantic version strings correctly', () => {
+  assertEquals(formatVersion(1, 0, 0), '1.0.0');
+  assertEquals(formatVersion(2, 5, 10), '2.5.10');
+  assertEquals(formatVersion(1, 0, 0, 'beta.1'), '1.0.0-beta.1');
+  assertEquals(formatVersion(3, 2, 1, 'alpha'), '3.2.1-alpha');
+  assertEquals(formatVersion(0, 1, 0, 'rc.2'), '0.1.0-rc.2');
+});
+
+Deno.test('parseVersion - parses semantic version strings correctly', () => {
+  // Valid versions
+  assertEquals(parseVersion('1.0.0'), {
+    major: 1,
+    minor: 0,
+    patch: 0,
+  });
+  
+  assertEquals(parseVersion('2.5.10'), {
+    major: 2,
+    minor: 5,
+    patch: 10,
+  });
+  
+  assertEquals(parseVersion('1.0.0-beta.1'), {
+    major: 1,
+    minor: 0,
+    patch: 0,
+    prerelease: 'beta.1',
+  });
+  
+  assertEquals(parseVersion('3.2.1-alpha'), {
+    major: 3,
+    minor: 2,
+    patch: 1,
+    prerelease: 'alpha',
+  });
+  
+  // Invalid versions
+  assertEquals(parseVersion('invalid'), null);
+  assertEquals(parseVersion('1.0'), null);
+  assertEquals(parseVersion('1.0.0.0'), null);
+  assertEquals(parseVersion(''), null);
 });
