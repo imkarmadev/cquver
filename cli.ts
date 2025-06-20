@@ -3,9 +3,12 @@
 import { parseArgs } from 'https://deno.land/std@0.208.0/cli/parse_args.ts';
 import { GeneratorService } from './src/generator.service.ts';
 
+const VERSION = '1.3.0'; // Current version
+
 interface Args {
   _: string[];
   help?: boolean;
+  version?: boolean;
 }
 
 function showHelp() {
@@ -14,6 +17,8 @@ function showHelp() {
 
 📋 Usage:
   cquver <action> <type> <name> [app]
+  cquver --version, -v      Show version information
+  cquver --help, -h         Show this help message
 
 🎯 Actions:
   create, c, generate, g    Generate a new handler
@@ -38,8 +43,22 @@ function showHelp() {
   `);
 }
 
+function showVersion() {
+  console.log(`🚀 cquver v${VERSION}`);
+  console.log('📦 NestJS DDD/CQRS Boilerplate Generator');
+  console.log('🔗 https://github.com/imkarmadev/cquver');
+}
+
 async function main() {
-  const args = parseArgs(Deno.args) as Args;
+  const args = parseArgs(Deno.args, {
+    boolean: ['help', 'version'],
+    alias: { h: 'help', v: 'version' },
+  }) as Args;
+
+  if (args.version) {
+    showVersion();
+    Deno.exit(0);
+  }
 
   if (args.help || args._.length === 0) {
     showHelp();
