@@ -23,7 +23,7 @@ const COMMIT_TYPES = {
   build: 'Build System',
   ci: 'Continuous Integration',
   chore: 'Chores',
-  revert: 'Reverts'
+  revert: 'Reverts',
 };
 
 async function runCommand(cmd: string[]): Promise<string> {
@@ -34,7 +34,7 @@ async function runCommand(cmd: string[]): Promise<string> {
   });
 
   const { code, stdout } = await process.output();
-  
+
   if (code !== 0) {
     throw new Error(`Command failed: ${cmd.join(' ')}`);
   }
@@ -47,7 +47,8 @@ function parseCommit(commitLine: string): ChangelogEntry | null {
   const message = messageParts.join(' ');
 
   // Parse conventional commit format: type(scope): description
-  const conventionalRegex = /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?: (.+)$/;
+  const conventionalRegex =
+    /^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?: (.+)$/;
   const match = message.match(conventionalRegex);
 
   if (!match) {
@@ -76,23 +77,21 @@ async function getCommitsSinceLastTag(): Promise<string[]> {
   try {
     // Get the last tag
     const lastTag = await runCommand(['git', 'describe', '--tags', '--abbrev=0']);
-    
+
     // Get commits since last tag
-    const commits = await runCommand(['git', 'log', `${lastTag}..HEAD`, '--oneline', '--no-merges']);
-    
-    return commits ? commits.split('\n').filter(line => line.trim()) : [];
+    const commits = await runCommand([
+      'git',
+      'log',
+      `${lastTag}..HEAD`,
+      '--oneline',
+      '--no-merges',
+    ]);
+
+    return commits ? commits.split('\n').filter((line) => line.trim()) : [];
   } catch {
     // If no tags exist, get all commits
     const commits = await runCommand(['git', 'log', '--oneline', '--no-merges']);
-    return commits ? commits.split('\n').filter(line => line.trim()) : [];
-  }
-}
-
-async function getLastTag(): Promise<string | null> {
-  try {
-    return await runCommand(['git', 'describe', '--tags', '--abbrev=0']);
-  } catch {
-    return null;
+    return commits ? commits.split('\n').filter((line) => line.trim()) : [];
   }
 }
 
@@ -100,7 +99,7 @@ function formatChangelog(version: string, entries: ChangelogEntry[], date: strin
   const sections: ChangelogSection = {};
 
   // Group entries by type
-  entries.forEach(entry => {
+  entries.forEach((entry) => {
     const sectionKey = COMMIT_TYPES[entry.type as keyof typeof COMMIT_TYPES] || 'Other';
     if (!sections[sectionKey]) {
       sections[sectionKey] = [];
@@ -111,10 +110,10 @@ function formatChangelog(version: string, entries: ChangelogEntry[], date: strin
   let changelog = `## [${version}] - ${date}\n\n`;
 
   // Add breaking changes first if any
-  const breakingChanges = entries.filter(e => e.breaking);
+  const breakingChanges = entries.filter((e) => e.breaking);
   if (breakingChanges.length > 0) {
     changelog += `### ⚠ BREAKING CHANGES\n\n`;
-    breakingChanges.forEach(entry => {
+    breakingChanges.forEach((entry) => {
       const scope = entry.scope ? `**${entry.scope}**: ` : '';
       changelog += `- ${scope}${entry.description} ([${entry.hash}])\n`;
     });
@@ -125,7 +124,7 @@ function formatChangelog(version: string, entries: ChangelogEntry[], date: strin
   Object.entries(sections).forEach(([sectionName, sectionEntries]) => {
     if (sectionEntries.length > 0) {
       changelog += `### ${getEmoji(sectionName)} ${sectionName}\n\n`;
-      sectionEntries.forEach(entry => {
+      sectionEntries.forEach((entry) => {
         const scope = entry.scope ? `**${entry.scope}**: ` : '';
         changelog += `- ${scope}${entry.description} ([${entry.hash}])\n`;
       });
@@ -149,12 +148,12 @@ function getEmoji(sectionName: string): string {
     'Continuous Integration': '💚',
     'Chores': '🔧',
     'Reverts': '⏪',
-    'Other': '📦'
+    'Other': '📦',
   };
   return emojiMap[sectionName] || '📦';
 }
 
-async function updateChangelog(newVersion: string, newContent: string): Promise<void> {
+async function updateChangelog(_newVersion: string, newContent: string): Promise<void> {
   const changelogPath = 'CHANGELOG.md';
   let existingContent = '';
 
@@ -174,11 +173,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
   // Insert new changelog entry after the header
   const lines = existingContent.split('\n');
-  const headerEndIndex = lines.findIndex(line => line.startsWith('## '));
-  
+  const headerEndIndex = lines.findIndex((line) => line.startsWith('## '));
+
   if (headerEndIndex === -1) {
     // No existing releases, add after header
-    const headerEnd = lines.findIndex(line => line.trim() === '') + 1;
+    const headerEnd = lines.findIndex((line) => line.trim() === '') + 1;
     lines.splice(headerEnd, 0, newContent);
   } else {
     // Insert before first existing release
@@ -190,7 +189,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 async function main() {
   const args = Deno.args;
-  
+
   if (args.length === 0) {
     console.error('Usage: deno run generate-changelog.ts <version>');
     console.error('Example: deno run generate-changelog.ts v1.2.0');
@@ -204,7 +203,7 @@ async function main() {
 
   try {
     const commits = await getCommitsSinceLastTag();
-    
+
     if (commits.length === 0) {
       console.log('🔍 No new commits found since last release.');
       return;
@@ -213,8 +212,8 @@ async function main() {
     console.log(`📋 Found ${commits.length} commits to process...`);
 
     const entries: ChangelogEntry[] = [];
-    
-    commits.forEach(commit => {
+
+    commits.forEach((commit) => {
       const entry = parseCommit(commit);
       if (entry) {
         entries.push(entry);
@@ -234,7 +233,6 @@ async function main() {
     console.log('─'.repeat(50));
     console.log(changelogContent);
     console.log('─'.repeat(50));
-
   } catch (error) {
     console.error('❌ Error generating changelog:', error instanceof Error ? error.message : error);
     Deno.exit(1);
@@ -243,4 +241,4 @@ async function main() {
 
 if (import.meta.main) {
   main();
-} 
+}

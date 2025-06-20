@@ -66,7 +66,7 @@ const COMMIT_TYPES: CommitType[] = [
     type: 'chore',
     emoji: '🔧',
     title: 'Chores',
-    description: 'Other changes that don\'t modify src or test files',
+    description: "Other changes that don't modify src or test files",
   },
   {
     type: 'revert',
@@ -114,20 +114,20 @@ async function prompt(message: string): Promise<string> {
 async function select(message: string, options: string[]): Promise<number> {
   console.log(colorize(`\n${message}`, colors.cyan));
   console.log();
-  
+
   options.forEach((option, index) => {
     console.log(`  ${colorize(`${index + 1}`, colors.yellow)}. ${option}`);
   });
-  
+
   console.log();
   const answer = await prompt(colorize('Enter your choice (number): ', colors.green));
   const choice = parseInt(answer) - 1;
-  
+
   if (isNaN(choice) || choice < 0 || choice >= options.length) {
     console.log(colorize('❌ Invalid choice. Please try again.', colors.red));
     return await select(message, options);
   }
-  
+
   return choice;
 }
 
@@ -142,32 +142,32 @@ function formatCommitMessage(
   description: string,
   body: string,
   breaking: boolean,
-  issues: string
+  issues: string,
 ): string {
   let message = type;
-  
+
   if (scope) {
     message += `(${scope})`;
   }
-  
+
   if (breaking) {
     message += '!';
   }
-  
+
   message += `: ${description}`;
-  
+
   if (body) {
     message += `\n\n${body}`;
   }
-  
+
   if (breaking) {
     message += `\n\nBREAKING CHANGE: ${description}`;
   }
-  
+
   if (issues) {
     message += `\n\nCloses: ${issues}`;
   }
-  
+
   return message;
 }
 
@@ -179,7 +179,7 @@ async function runGitCommand(args: string[]): Promise<void> {
   });
 
   const { code, stderr } = await process.output();
-  
+
   if (code !== 0) {
     const errorMessage = new TextDecoder().decode(stderr);
     throw new Error(`Git command failed: ${errorMessage}`);
@@ -188,7 +188,12 @@ async function runGitCommand(args: string[]): Promise<void> {
 
 async function main() {
   console.log(colorize('🚀 Conventional Commit Helper', colors.bright + colors.cyan));
-  console.log(colorize('This tool helps you create conventional commits following the standard format.\n', colors.cyan));
+  console.log(
+    colorize(
+      'This tool helps you create conventional commits following the standard format.\n',
+      colors.cyan,
+    ),
+  );
 
   try {
     // Check if we're in a git repository
@@ -199,7 +204,7 @@ async function main() {
   }
 
   // Step 1: Select commit type
-  const typeOptions = COMMIT_TYPES.map(t => `${t.emoji} ${t.type} - ${t.description}`);
+  const typeOptions = COMMIT_TYPES.map((t) => `${t.emoji} ${t.type} - ${t.description}`);
   const typeIndex = await select('What type of change are you committing?', typeOptions);
   const selectedType = COMMIT_TYPES[typeIndex];
 
@@ -208,25 +213,27 @@ async function main() {
   // Step 2: Select scope (optional)
   const wantScope = await confirm('\nDo you want to add a scope?');
   let selectedScope = '';
-  
+
   if (wantScope) {
     const scopeOptions = [...SCOPES, 'other (custom)'];
     const scopeIndex = await select('What is the scope of this change?', scopeOptions);
-    
+
     if (scopeIndex === SCOPES.length) {
       selectedScope = await prompt(colorize('\nEnter custom scope: ', colors.green));
     } else {
       selectedScope = SCOPES[scopeIndex];
     }
-    
+
     if (selectedScope) {
       console.log(colorize(`✅ Scope: ${selectedScope}`, colors.green));
     }
   }
 
   // Step 3: Short description
-  const description = await prompt(colorize('\nWrite a short, imperative description of the change: ', colors.green));
-  
+  const description = await prompt(
+    colorize('\nWrite a short, imperative description of the change: ', colors.green),
+  );
+
   if (!description.trim()) {
     console.log(colorize('❌ Description is required.', colors.red));
     Deno.exit(1);
@@ -235,9 +242,11 @@ async function main() {
   // Step 4: Long description (optional)
   const wantBody = await confirm('\nDo you want to add a longer description?');
   let body = '';
-  
+
   if (wantBody) {
-    body = await prompt(colorize('\nProvide a longer description (press Enter to finish):\n', colors.green));
+    body = await prompt(
+      colorize('\nProvide a longer description (press Enter to finish):\n', colors.green),
+    );
   }
 
   // Step 5: Breaking change
@@ -246,7 +255,7 @@ async function main() {
   // Step 6: Issues (optional)
   const wantIssues = await confirm('\nDoes this commit close any issues?');
   let issues = '';
-  
+
   if (wantIssues) {
     issues = await prompt(colorize('\nEnter issue numbers (e.g., #123, #456): ', colors.green));
   }
@@ -258,7 +267,7 @@ async function main() {
     description,
     body,
     isBreaking,
-    issues
+    issues,
   );
 
   // Show preview
@@ -269,7 +278,7 @@ async function main() {
 
   // Confirm commit
   const shouldCommit = await confirm('\nDo you want to create this commit?');
-  
+
   if (!shouldCommit) {
     console.log(colorize('❌ Commit cancelled.', colors.yellow));
     Deno.exit(0);
@@ -279,7 +288,7 @@ async function main() {
     // Create the commit
     await runGitCommand(['commit', '-m', commitMessage]);
     console.log(colorize('\n🎉 Commit created successfully!', colors.green));
-    
+
     // Show git log
     const showLog = await confirm('\nDo you want to see the commit in git log?');
     if (showLog) {
@@ -289,7 +298,6 @@ async function main() {
       });
       await process.output();
     }
-    
   } catch (error) {
     console.log(colorize(`❌ Failed to create commit: ${error.message}`, colors.red));
     console.log(colorize('\n💡 Make sure you have staged some changes first:', colors.yellow));
@@ -304,4 +312,4 @@ if (import.meta.main) {
     console.error(colorize(`❌ Error: ${message}`, colors.red));
     Deno.exit(1);
   });
-} 
+}
