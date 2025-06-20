@@ -1,3 +1,5 @@
+![nestjs](https://img.shields.io/badge/Nestjs-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)
+
 <div align="center">
 
 ![cquver Logo](assets/logo.png)
