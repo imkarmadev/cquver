@@ -386,6 +386,13 @@ This project now uses an automated workflow for quality assurance and releases:
 ✅ Workflow validation system implemented and tested
 ✅ Version utility functions added for semantic versioning support
 ✅ Enhanced CLI help text with emojis and better formatting
+✅ Added version command for easy version checking
+
+### New CLI Features
+
+- **Version Command**: Use `cquver --version` or `cquver -v` to check the current version
+- **Enhanced Help**: Improved help text with better organization and visual clarity
+- **User-Friendly Interface**: Emoji icons and clear sections for better usability
 
 ### New Utility Functions
 
