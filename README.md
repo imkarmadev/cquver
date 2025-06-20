@@ -372,3 +372,15 @@ cquver/
 ## License
 
 MIT
+
+## 🔄 Automated Workflow
+
+This project now uses an automated workflow for quality assurance and releases:
+
+- **PR Validation**: All pull requests are automatically validated for code quality and conventional commits
+- **Auto Release**: Merging to main automatically creates releases based on conventional commit analysis
+- **Version Bumping**: Semantic versioning is handled automatically based on commit types
+
+### Workflow Test Status
+
+✅ Workflow validation system implemented and tested

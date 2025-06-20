@@ -1,5 +1,5 @@
 import { assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
-import { ensureSuffix, generateHandlerName, toKebabCase, toPascalCase } from '../src/utils.ts';
+import { ensureSuffix, generateHandlerName, toKebabCase, toPascalCase, isValidConventionalCommit } from '../src/utils.ts';
 
 Deno.test('toPascalCase - converts various formats to PascalCase', () => {
   // Basic conversions
@@ -70,4 +70,19 @@ Deno.test('generateHandlerName - creates handler name from class name', () => {
   // Edge cases
   assertEquals(generateHandlerName(''), 'Handler');
   assertEquals(generateHandlerName('A'), 'AHandler');
+});
+
+Deno.test("isValidConventionalCommit - validates conventional commit format", () => {
+  // Valid commits
+  assertEquals(isValidConventionalCommit("feat: add new feature"), true);
+  assertEquals(isValidConventionalCommit("fix(auth): resolve login issue"), true);
+  assertEquals(isValidConventionalCommit("docs: update README"), true);
+  assertEquals(isValidConventionalCommit("feat!: breaking change"), true);
+  assertEquals(isValidConventionalCommit("fix(scope)!: breaking fix"), true);
+  
+  // Invalid commits
+  assertEquals(isValidConventionalCommit("invalid commit message"), false);
+  assertEquals(isValidConventionalCommit("add new feature"), false);
+  assertEquals(isValidConventionalCommit(""), false);
+  assertEquals(isValidConventionalCommit("unknown: some change"), false);
 });

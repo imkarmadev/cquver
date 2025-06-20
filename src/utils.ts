@@ -65,3 +65,24 @@ export async function ensureDir(path: string): Promise<void> {
     }
   }
 }
+
+/**
+ * Validates if a string follows conventional commit format
+ * @param commitMessage - The commit message to validate
+ * @returns true if valid, false otherwise
+ */
+export function isValidConventionalCommit(commitMessage: string): boolean {
+  if (!commitMessage.includes(':')) {
+    return false;
+  }
+
+  const prefix = commitMessage.split(':')[0];
+  const type = prefix.replace(/\([^)]+\)/, '').replace('!', '');
+  
+  const validTypes = [
+    'feat', 'fix', 'docs', 'style', 'refactor', 
+    'perf', 'test', 'build', 'ci', 'chore', 'revert'
+  ];
+  
+  return validTypes.includes(type);
+}
