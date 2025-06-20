@@ -14,7 +14,8 @@
     "changelog:check": "deno run --allow-read --allow-run scripts/generate-changelog.ts --dry-run",
     "commit": "deno run --allow-read --allow-write --allow-run scripts/commit.ts",
     "setup-git": "deno run --allow-read --allow-write --allow-run scripts/setup-git.ts",
-    "release": "deno run --allow-read --allow-write --allow-run scripts/prepare-release.ts"
+    "release": "deno run --allow-read --allow-write --allow-run scripts/prepare-release.ts",
+    "create-pr": "deno run --allow-read --allow-write --allow-run scripts/create-pr.ts"
   },
   "fmt": {
     "useTabs": false,

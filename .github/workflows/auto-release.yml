@@ -1,0 +1,144 @@
+name: Auto Release on PR Merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+env:
+  DENO_VERSION: v2.3.6
+
+jobs:
+  auto-release:
+    name: Auto Release
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+
+      - name: Get PR information
+        id: pr_info
+        run: |
+          echo "pr_number=${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
+          echo "pr_title=${{ github.event.pull_request.title }}" >> $GITHUB_OUTPUT
+          echo "pr_author=${{ github.event.pull_request.user.login }}" >> $GITHUB_OUTPUT
+
+      - name: Analyze commits and determine version
+        id: version
+        run: |
+          echo "🔍 Analyzing PR commits for version bump..."
+
+          # Get commits from the PR
+          PR_COMMITS=$(gh pr view ${{ steps.pr_info.outputs.pr_number }} --json commits --jq '.commits[].messageHeadline')
+
+          echo "📋 PR Commits:"
+          echo "$PR_COMMITS"
+
+          # Analyze commit types for version bump
+          BUMP_LEVEL="patch"
+          HAS_BREAKING=false
+          HAS_FEATURES=false
+          HAS_FIXES=false
+
+          while IFS= read -r commit; do
+            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!: ]]; then
+              echo "🚨 Breaking change detected: $commit"
+              HAS_BREAKING=true
+            elif [[ "$commit" =~ ^feat(\([^)]+\))?: ]]; then
+              echo "✨ Feature detected: $commit"
+              HAS_FEATURES=true
+            elif [[ "$commit" =~ ^fix(\([^)]+\))?: ]]; then
+              echo "🐛 Fix detected: $commit"
+              HAS_FIXES=true
+            fi
+          done <<< "$PR_COMMITS"
+
+          # Determine bump level
+          if [ "$HAS_BREAKING" = true ]; then
+            BUMP_LEVEL="major"
+          elif [ "$HAS_FEATURES" = true ]; then
+            BUMP_LEVEL="minor"
+          elif [ "$HAS_FIXES" = true ]; then
+            BUMP_LEVEL="patch"
+          else
+            BUMP_LEVEL="patch"
+          fi
+
+          echo "bump_level=$BUMP_LEVEL" >> $GITHUB_OUTPUT
+          echo "🎯 Determined bump level: $BUMP_LEVEL"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get current version and calculate next
+        id: next_version
+        run: |
+          # Get current version
+          CURRENT_VERSION=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "📌 Current version: $CURRENT_VERSION"
+
+          # Remove 'v' prefix for calculation
+          VERSION_NO_V=${CURRENT_VERSION#v}
+          IFS='.' read -r major minor patch <<< "$VERSION_NO_V"
+
+          # Calculate next version based on bump level
+          case "${{ steps.version.outputs.bump_level }}" in
+            "major")
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            "minor")
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            "patch")
+              patch=$((patch + 1))
+              ;;
+          esac
+
+          NEXT_VERSION="v${major}.${minor}.${patch}"
+          echo "🚀 Next version: $NEXT_VERSION"
+          echo "next_version=$NEXT_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Create release tag
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+          echo "🏷️ Creating tag ${{ steps.next_version.outputs.next_version }}"
+          git tag -a ${{ steps.next_version.outputs.next_version }} -m "Auto-release ${{ steps.next_version.outputs.next_version }} from PR #${{ steps.pr_info.outputs.pr_number }}"
+          git push origin ${{ steps.next_version.outputs.next_version }}
+
+      - name: Create release summary
+        run: |
+          echo "📋 Auto-Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "========================" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🎯 **Version**: ${{ steps.next_version.outputs.next_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "📈 **Bump Level**: ${{ steps.version.outputs.bump_level }}" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Triggered by PR**: #${{ steps.pr_info.outputs.pr_number }} - ${{ steps.pr_info.outputs.pr_title }}" >> $GITHUB_STEP_SUMMARY
+          echo "👤 **Author**: @${{ steps.pr_info.outputs.pr_author }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 The release workflow will now build and publish the binaries." >> $GITHUB_STEP_SUMMARY
+
+  trigger-release:
+    name: Trigger Release Workflow
+    needs: auto-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger release workflow
+        run: |
+          echo "🎯 Auto-release completed successfully!"
+          echo "🔗 Check the 'Release' workflow for build progress."

@@ -1,0 +1,231 @@
+name: PR Validation
+
+on:
+  pull_request:
+    branches: [main]
+  pull_request_target:
+    branches: [main]
+
+env:
+  DENO_VERSION: v2.3.6
+
+jobs:
+  validate:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout PR code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Setup Deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: ${{ env.DENO_VERSION }}
+
+      - name: Check code formatting
+        run: |
+          echo "📋 Checking code formatting..."
+          if ! deno fmt --check; then
+            echo "❌ Code formatting check failed!"
+            echo "💡 Run 'deno fmt' to fix formatting issues"
+            exit 1
+          fi
+          echo "✅ Code formatting is correct"
+
+      - name: Run lint checks
+        run: |
+          echo "📋 Running lint checks..."
+          if ! deno lint; then
+            echo "❌ Lint checks failed!"
+            exit 1
+          fi
+          echo "✅ Lint checks passed"
+
+      - name: Run type check
+        run: |
+          echo "📋 Running type check..."
+          if ! deno check cli.ts; then
+            echo "❌ Type check failed!"
+            exit 1
+          fi
+          echo "✅ Type check passed"
+
+      - name: Run tests
+        run: |
+          echo "📋 Running tests..."
+          if ! deno task test; then
+            echo "❌ Tests failed!"
+            exit 1
+          fi
+          echo "✅ All tests passed"
+
+      - name: Validate commit messages
+        run: |
+          echo "📋 Validating commit messages..."
+
+          # Get commits from this PR
+          COMMITS=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits[].messageHeadline')
+
+          INVALID_COMMITS=()
+
+          while IFS= read -r commit; do
+            if [[ ! "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([^)]+\))?: ]]; then
+              INVALID_COMMITS+=("$commit")
+            fi
+          done <<< "$COMMITS"
+
+          if [ ${#INVALID_COMMITS[@]} -gt 0 ]; then
+            echo "❌ Found commits that don't follow conventional commit format:"
+            printf '%s\n' "${INVALID_COMMITS[@]}"
+            echo ""
+            echo "💡 Please use conventional commit format:"
+            echo "   feat: add new feature"
+            echo "   fix: fix bug"
+            echo "   docs: update documentation"
+            echo "   style: formatting changes"
+            echo "   refactor: code refactoring"
+            echo "   test: add or update tests"
+            echo "   chore: maintenance tasks"
+            exit 1
+          fi
+
+          echo "✅ All commit messages follow conventional format"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Analyze version impact
+        id: version_impact
+        run: |
+          echo "🔍 Analyzing version impact of this PR..."
+
+          # Get commits from the PR
+          COMMITS=$(gh pr view ${{ github.event.pull_request.number }} --json commits --jq '.commits[].messageHeadline')
+
+          BUMP_LEVEL="patch"
+          FEATURES=()
+          FIXES=()
+          BREAKING=()
+          OTHER=()
+
+          while IFS= read -r commit; do
+            if [[ "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore)(\([^)]+\))?!: ]]; then
+              BREAKING+=("$commit")
+              BUMP_LEVEL="major"
+            elif [[ "$commit" =~ ^feat(\([^)]+\))?: ]]; then
+              FEATURES+=("$commit")
+              if [ "$BUMP_LEVEL" != "major" ]; then
+                BUMP_LEVEL="minor"
+              fi
+            elif [[ "$commit" =~ ^fix(\([^)]+\))?: ]]; then
+              FIXES+=("$commit")
+            else
+              OTHER+=("$commit")
+            fi
+          done <<< "$COMMITS"
+
+          echo "version_bump=$BUMP_LEVEL" >> $GITHUB_OUTPUT
+
+          # Create version impact summary
+          echo "## 🎯 Version Impact Analysis" >> version_impact.md
+          echo "" >> version_impact.md
+          echo "**Suggested version bump: \`$BUMP_LEVEL\`**" >> version_impact.md
+          echo "" >> version_impact.md
+
+          if [ ${#BREAKING[@]} -gt 0 ]; then
+            echo "### ⚠️ Breaking Changes (Major)" >> version_impact.md
+            printf '- %s\n' "${BREAKING[@]}" >> version_impact.md
+            echo "" >> version_impact.md
+          fi
+
+          if [ ${#FEATURES[@]} -gt 0 ]; then
+            echo "### ✨ Features (Minor)" >> version_impact.md
+            printf '- %s\n' "${FEATURES[@]}" >> version_impact.md
+            echo "" >> version_impact.md
+          fi
+
+          if [ ${#FIXES[@]} -gt 0 ]; then
+            echo "### 🐛 Bug Fixes (Patch)" >> version_impact.md
+            printf '- %s\n' "${FIXES[@]}" >> version_impact.md
+            echo "" >> version_impact.md
+          fi
+
+          if [ ${#OTHER[@]} -gt 0 ]; then
+            echo "### 🔧 Other Changes (Patch)" >> version_impact.md
+            printf '- %s\n' "${OTHER[@]}" >> version_impact.md
+            echo "" >> version_impact.md
+          fi
+
+          echo "---" >> version_impact.md
+          echo "💡 When this PR is merged, it will automatically create a **$BUMP_LEVEL** version release." >> version_impact.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Comment on PR with validation results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Read version impact analysis
+            let versionImpact = '';
+            try {
+              versionImpact = fs.readFileSync('version_impact.md', 'utf8');
+            } catch (error) {
+              versionImpact = '## 🎯 Version Impact Analysis\n\nCould not analyze version impact.';
+            }
+
+            const comment = `## ✅ PR Validation Results
+
+            All validation checks passed! 🎉
+
+            ✅ Code formatting
+            ✅ Lint checks
+            ✅ Type checking
+            ✅ All tests passing
+            ✅ Conventional commit format
+
+            ${versionImpact}
+
+            This PR is ready to merge! 🚀`;
+
+            // Find existing comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const existingComment = comments.find(comment =>
+              comment.user.type === 'Bot' &&
+              comment.body.includes('PR Validation Results')
+            );
+
+            if (existingComment) {
+              // Update existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: comment
+              });
+            } else {
+              // Create new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
+      - name: Set PR status
+        run: |
+          echo "🎉 PR validation completed successfully!"
+          echo "✅ All checks passed"
+          echo "🚀 Ready to merge"

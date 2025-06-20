@@ -28,7 +28,14 @@ All notable changes are documented in [CHANGELOG.md](CHANGELOG.md). The changelo
 
 ## 🤝 Contributing
 
-This project uses [Conventional Commits](https://www.conventionalcommits.org/) for automated changelog generation. We provide tools to make this easy:
+We welcome contributions! This project uses a **protected branch workflow** with automatic releases.
+
+### 🛡️ Protected Branch Workflow
+
+- 🚫 **No direct pushes to `main`** - All changes must go through pull requests
+- ✅ **Automatic validation** - PRs are validated for code quality and conventional commits
+- 🚀 **Auto-releases** - Merging PRs automatically creates releases based on commit types
+- 📝 **Smart versioning** - Semantic version bumps based on conventional commit analysis
 
 ### Quick Setup for Contributors
 
@@ -37,22 +44,29 @@ This project uses [Conventional Commits](https://www.conventionalcommits.org/) f
 deno task setup-git
 ```
 
-### Making Commits
+### Development Workflow
 
 ```bash
-# Interactive conventional commit helper (recommended)
+# 1. Create feature branch and PR
+deno task create-pr
+
+# 2. Make commits using conventional format
 deno task commit
 # or use the git alias
 git cc
 
-# Regular commit with template
-git commit
+# 3. Push changes (triggers PR validation)
+git push
 
-# Create a release (analyzes commits and suggests version)
-deno task release
+# 4. Get PR reviewed and merged (triggers automatic release)
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.
+### 📚 Documentation
+
+- 🛡️ **Protected Branch Workflow:** [`docs/PROTECTED_BRANCH_WORKFLOW.md`](docs/PROTECTED_BRANCH_WORKFLOW.md)
+- 📋 **Conventional Commits:** [`docs/CONVENTIONAL_COMMITS_CHEATSHEET.md`](docs/CONVENTIONAL_COMMITS_CHEATSHEET.md)
+- 🚀 **Release Process:** [`docs/RELEASE_WORKFLOW.md`](docs/RELEASE_WORKFLOW.md)
+- 🤝 **Contributing Guide:** [`CONTRIBUTING.md`](CONTRIBUTING.md)
 
 ## Installation
 
