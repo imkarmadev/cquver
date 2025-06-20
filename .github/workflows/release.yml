@@ -102,7 +102,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Fetch all history for changelog generation
+          fetch-depth: 0
 
       - name: Setup Deno
         uses: denoland/setup-deno@v1
@@ -121,13 +121,10 @@ jobs:
       - name: Generate changelog
         run: |
           echo "📝 Generating changelog for ${{ steps.tag.outputs.tag }}..."
-
-          # Create a simple changelog entry based on the tag
           VERSION_NO_V="${{ steps.tag.outputs.tag }}"
           VERSION_NO_V="${VERSION_NO_V#v}"
           DATE=$(date +%Y-%m-%d)
 
-          # Create basic changelog entry
           cat > new_changelog_entry.md << EOF
           ## [${VERSION_NO_V}] - ${DATE}
 
@@ -142,9 +139,7 @@ jobs:
 
           EOF
 
-          # Update CHANGELOG.md if it exists
           if [ -f CHANGELOG.md ]; then
-            # Insert new entry after the header
             awk '
               /^# Changelog/ { print; header_found=1; next }
               header_found && /^$/ && !entry_added {
@@ -157,7 +152,6 @@ jobs:
               { print }
             ' CHANGELOG.md > temp_changelog.md && mv temp_changelog.md CHANGELOG.md
           else
-            # Create new CHANGELOG.md
             cat > CHANGELOG.md << EOF
           # Changelog
 
@@ -197,7 +191,7 @@ jobs:
           sha256sum * > checksums.txt
           cat checksums.txt
 
-            - name: Generate release notes
+      - name: Generate release notes
         id: release_notes
         run: |
           VERSION_NO_V="${{ steps.tag.outputs.tag }}"
@@ -245,7 +239,6 @@ jobs:
           cat release_notes.md
           echo "=== End of release notes ==="
 
-          # Always use our generated content
           content_lines=$(grep -v '^#' release_notes.md | grep -v '^$' | wc -l)
           echo "Generated $content_lines lines of content"
 
@@ -360,7 +353,6 @@ jobs:
 
       - name: Generate and commit changelog
         run: |
-          # Generate changelog for this version
           deno run --allow-read --allow-write --allow-run scripts/generate-changelog.ts ${{ steps.tag.outputs.tag }}
 
       - name: Commit and push changes
