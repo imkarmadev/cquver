@@ -47,6 +47,9 @@ git cc
 
 # Regular commit with template
 git commit
+
+# Prepare a release (analyzes commits and suggests version)
+deno task prepare:release
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed guidelines.

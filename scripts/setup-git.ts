@@ -184,6 +184,10 @@ function showSummary(): void {
     colorize('  📝 Changelog: ', colors.yellow) +
       colorize('deno task changelog v1.0.0', colors.blue),
   );
+  console.log(
+    colorize('  🚀 Prepare release: ', colors.yellow) +
+      colorize('deno task prepare:release', colors.blue),
+  );
 
   console.log(colorize('\n💡 VSCode Extensions (recommended):', colors.cyan));
   console.log(
