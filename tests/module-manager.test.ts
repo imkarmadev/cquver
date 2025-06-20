@@ -21,9 +21,9 @@ async function cleanupTestDir(path: string) {
 
 Deno.test('ModuleManagerService - generates correct type index content', async () => {
   const moduleManager = new ModuleManagerService();
-  const testPath = 'test-temp/commands';
+  const testPath = 'apps/test-app/src/application/commands';
 
-  await cleanupTestDir('test-temp');
+  await cleanupTestDir('apps');
   await createTestDir(testPath);
 
   try {
@@ -63,23 +63,22 @@ export class UpdateUserCommandHandler {
     assert(indexContent.includes('CreateUserCommandHandler'));
     assert(indexContent.includes('export { CreateUserCommand }'));
   } finally {
-    await cleanupTestDir('test-temp');
+    await cleanupTestDir('apps');
   }
 });
 
 Deno.test('ModuleManagerService - creates new module file when none exists', async () => {
   const moduleManager = new ModuleManagerService();
-  const testPath = 'test-temp';
 
-  await cleanupTestDir(testPath);
+  await cleanupTestDir('apps');
 
   try {
     await moduleManager.updateServiceModule('test-service');
 
-    assert(await exists(`apps/src/test-service/src/test-service.module.ts`));
+    assert(await exists(`apps/test-service/src/test-service.module.ts`));
 
     const moduleContent = await Deno.readTextFile(
-      `apps/src/test-service/src/test-service.module.ts`,
+      `apps/test-service/src/test-service.module.ts`,
     );
     assert(moduleContent.includes("import { Module } from '@nestjs/common';"));
     assert(moduleContent.includes("import { CqrsModule } from '@nestjs/cqrs';"));
@@ -91,15 +90,15 @@ Deno.test('ModuleManagerService - creates new module file when none exists', asy
     assert(moduleContent.includes('...QueryHandlers'));
     assert(moduleContent.includes('export class TestServiceModule'));
   } finally {
-    await cleanupTestDir(testPath);
+    await cleanupTestDir('apps');
   }
 });
 
 Deno.test('ModuleManagerService - preserves existing providers in module file', async () => {
   const moduleManager = new ModuleManagerService();
-  const testPath = 'test-temp/src/test-service/src';
+  const testPath = 'apps/test-service/src';
 
-  await cleanupTestDir('test-temp');
+  await cleanupTestDir('apps');
   await createTestDir(testPath);
 
   try {
@@ -138,18 +137,36 @@ export class TestServiceModule {}`;
     assert(updatedContent.includes('...EventHandlers'));
     assert(updatedContent.includes('...QueryHandlers'));
   } finally {
-    await cleanupTestDir('test-temp');
+    await cleanupTestDir('apps');
   }
 });
 
 Deno.test('ModuleManagerService - handles multiple handlers in same type', async () => {
   const moduleManager = new ModuleManagerService();
-  const testPath = 'test-temp/commands';
+  const testPath = 'apps/test-app/src/application/commands';
 
-  await cleanupTestDir('test-temp');
+  await cleanupTestDir('apps');
   await createTestDir(testPath);
 
   try {
+    // Create test handler directories and files
+    await createTestDir(`${testPath}/create-user`);
+    await createTestDir(`${testPath}/update-user`);
+
+    await Deno.writeTextFile(
+      `${testPath}/create-user/create-user.handler.ts`,
+      `export class CreateUserCommandHandler {
+  async execute() {}
+}`,
+    );
+
+    await Deno.writeTextFile(
+      `${testPath}/update-user/update-user.handler.ts`,
+      `export class UpdateUserCommandHandler {
+  async execute() {}
+}`,
+    );
+
     // Add first handler
     await moduleManager.updateTypeIndex('test-app', 'commands', 'command', {
       name: 'CreateUserCommandHandler',
@@ -179,6 +196,6 @@ Deno.test('ModuleManagerService - handles multiple handlers in same type', async
     assert(handlerArray.includes('CreateUserCommandHandler'));
     assert(handlerArray.includes('UpdateUserCommandHandler'));
   } finally {
-    await cleanupTestDir('test-temp');
+    await cleanupTestDir('apps');
   }
 });

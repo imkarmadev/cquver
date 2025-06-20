@@ -72,6 +72,11 @@ deno test --allow-read --allow-write --verbose tests/utils.test.ts
 - ✅ Multiple handlers in same type
 - ✅ Generated file content validation
 - ✅ Module file updates
+- ✅ Service initialization (init command)
+- ✅ Folder structure creation without files
+- ✅ Error handling for non-existent apps
+- ✅ Preserving existing files and folders
+- ✅ Integration between init and generate commands
 
 ### Module Manager Tests (`module-manager.test.ts`)
 
@@ -89,6 +94,12 @@ deno test --allow-read --allow-write --verbose tests/utils.test.ts
 - ✅ Complete workflow (CLI → files created)
 - ✅ Complex naming scenarios
 - ✅ Plural folder naming (commands, events, queries)
+- ✅ Init command functionality
+- ✅ App existence validation for init
+- ✅ Folder structure creation via CLI
+- ✅ Existing file preservation during init
+- ✅ Integration workflow (init → create commands)
+- ✅ Different app naming conventions (kebab-case, PascalCase)
 
 ## Test Data Cleanup
 

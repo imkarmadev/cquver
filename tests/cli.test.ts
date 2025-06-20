@@ -54,7 +54,7 @@ Deno.test('CLI - fails with unsupported action', async () => {
   const result = await runCLI(['test-service', 'delete', 'event', 'TestEvent']);
 
   assertEquals(result.code, 1);
-  assert(result.stderr.includes('Only "create" action is supported'));
+  assert(result.stderr.includes('Action must be "init" or "create"'));
 });
 
 Deno.test('CLI - fails with unsupported type', async () => {
@@ -79,13 +79,13 @@ Deno.test('CLI - successfully creates event', async () => {
 
     // Verify files were created
     assert(
-      await exists('apps/src/test-service/application/events/user-created/user-created.event.ts'),
+      await exists('apps/test-service/src/application/events/user-created/user-created.event.ts'),
     );
     assert(
-      await exists('apps/src/test-service/application/events/user-created/user-created.handler.ts'),
+      await exists('apps/test-service/src/application/events/user-created/user-created.handler.ts'),
     );
-    assert(await exists('apps/src/test-service/application/events/index.ts'));
-    assert(await exists('apps/src/test-service/src/test-service.module.ts'));
+    assert(await exists('apps/test-service/src/application/events/index.ts'));
+    assert(await exists('apps/test-service/src/test-service.module.ts'));
   } finally {
     await cleanupTestApps();
   }
@@ -104,12 +104,12 @@ Deno.test('CLI - successfully creates command', async () => {
 
     // Verify files were created
     assert(
-      await exists('apps/src/auth-service/application/commands/create-user/create-user.command.ts'),
+      await exists('apps/auth-service/src/application/commands/create-user/create-user.command.ts'),
     );
     assert(
-      await exists('apps/src/auth-service/application/commands/create-user/create-user.handler.ts'),
+      await exists('apps/auth-service/src/application/commands/create-user/create-user.handler.ts'),
     );
-    assert(await exists('apps/src/auth-service/application/commands/index.ts'));
+    assert(await exists('apps/auth-service/src/application/commands/index.ts'));
   } finally {
     await cleanupTestApps();
   }
@@ -131,15 +131,15 @@ Deno.test('CLI - successfully creates query', async () => {
     // Verify files were created with correct pluralization
     assert(
       await exists(
-        'apps/src/order-service/application/queries/get-orders-by-user/get-orders-by-user.query.ts',
+        'apps/order-service/src/application/queries/get-orders-by-user/get-orders-by-user.query.ts',
       ),
     );
     assert(
       await exists(
-        'apps/src/order-service/application/queries/get-orders-by-user/get-orders-by-user.handler.ts',
+        'apps/order-service/src/application/queries/get-orders-by-user/get-orders-by-user.handler.ts',
       ),
     );
-    assert(await exists('apps/src/order-service/application/queries/index.ts'));
+    assert(await exists('apps/order-service/src/application/queries/index.ts'));
   } finally {
     await cleanupTestApps();
   }
@@ -155,20 +155,189 @@ Deno.test('CLI - handles complex naming correctly', async () => {
     await runCLI(['test-service', 'create', 'query', 'FindUsersByRole']);
 
     // Check directory names are correctly converted to kebab-case
-    assert(await exists('apps/src/test-service/application/events/xml-http-request-completed'));
-    assert(await exists('apps/src/test-service/application/commands/update-user-profile'));
-    assert(await exists('apps/src/test-service/application/queries/find-users-by-role'));
+    assert(await exists('apps/test-service/src/application/events/xml-http-request-completed'));
+    assert(await exists('apps/test-service/src/application/commands/update-user-profile'));
+    assert(await exists('apps/test-service/src/application/queries/find-users-by-role'));
 
     // Check class names are correctly preserved/generated
     const eventFile = await Deno.readTextFile(
-      'apps/src/test-service/application/events/xml-http-request-completed/xml-http-request-completed.event.ts',
+      'apps/test-service/src/application/events/xml-http-request-completed/xml-http-request-completed.event.ts',
     );
     assert(eventFile.includes('export class XMLHttpRequestCompletedEvent'));
 
     const commandFile = await Deno.readTextFile(
-      'apps/src/test-service/application/commands/update-user-profile/update-user-profile.command.ts',
+      'apps/test-service/src/application/commands/update-user-profile/update-user-profile.command.ts',
     );
     assert(commandFile.includes('export class UpdateUserProfileCommand'));
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - init command shows help message when app does not exist', async () => {
+  await cleanupTestApps();
+
+  try {
+    const result = await runCLI(['nonexistent-service', 'init']);
+
+    assertEquals(result.code, 1);
+    assert(result.stdout.includes('App "nonexistent-service" not found'));
+    assert(result.stdout.includes('nest generate app nonexistent-service'));
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - init command creates folder structure successfully', async () => {
+  await cleanupTestApps();
+
+  try {
+    // Create app directory first (simulate existing NestJS app)
+    await Deno.mkdir('apps/chat-service/src', { recursive: true });
+
+    const result = await runCLI(['chat-service', 'init']);
+
+    assertEquals(result.code, 0);
+    assert(result.stdout.includes('Successfully initialized service structure for "chat-service"'));
+    assert(result.stdout.includes('📁 Created directory'));
+
+    // Verify all required directories were created
+    assert(await exists('apps/chat-service/src/application'));
+    assert(await exists('apps/chat-service/src/application/commands'));
+    assert(await exists('apps/chat-service/src/application/events'));
+    assert(await exists('apps/chat-service/src/application/queries'));
+    assert(await exists('apps/chat-service/src/domain'));
+    assert(await exists('apps/chat-service/src/domain/constants'));
+    assert(await exists('apps/chat-service/src/domain/entities'));
+    assert(await exists('apps/chat-service/src/infrastructure'));
+    assert(await exists('apps/chat-service/src/infrastructure/adapters'));
+    assert(await exists('apps/chat-service/src/infrastructure/persistence'));
+    assert(await exists('apps/chat-service/src/controllers'));
+    assert(await exists('apps/chat-service/src/dto'));
+    assert(await exists('apps/chat-service/src/dto/requests'));
+    assert(await exists('apps/chat-service/src/dto/responses'));
+    assert(await exists('apps/chat-service/src/ports'));
+
+    // Verify no files were created (only directories)
+    const entries = [];
+    for await (const entry of Deno.readDir('apps/chat-service/src')) {
+      if (entry.isFile) {
+        entries.push(entry.name);
+      }
+    }
+    assertEquals(entries.length, 0, 'No files should be created by init command');
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - init command preserves existing files and folders', async () => {
+  await cleanupTestApps();
+
+  try {
+    // Create app directory with existing content
+    await Deno.mkdir('apps/user-service/src/existing', { recursive: true });
+    await Deno.writeTextFile('apps/user-service/src/main.ts', 'console.log("existing main");');
+    await Deno.writeTextFile(
+      'apps/user-service/src/user-service.module.ts',
+      'export class UserServiceModule {}',
+    );
+
+    const result = await runCLI(['user-service', 'init']);
+
+    assertEquals(result.code, 0);
+    assert(result.stdout.includes('Successfully initialized service structure for "user-service"'));
+
+    // Check that new directories were created
+    assert(await exists('apps/user-service/src/application'));
+    assert(await exists('apps/user-service/src/domain'));
+    assert(await exists('apps/user-service/src/infrastructure'));
+
+    // Check that existing files and directories are preserved
+    assert(await exists('apps/user-service/src/existing'));
+    assert(await exists('apps/user-service/src/main.ts'));
+    assert(await exists('apps/user-service/src/user-service.module.ts'));
+
+    const mainContent = await Deno.readTextFile('apps/user-service/src/main.ts');
+    assertEquals(mainContent, 'console.log("existing main");');
+
+    const moduleContent = await Deno.readTextFile('apps/user-service/src/user-service.module.ts');
+    assertEquals(moduleContent, 'export class UserServiceModule {}');
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - create commands work after init', async () => {
+  await cleanupTestApps();
+
+  try {
+    // Create app and initialize structure
+    await Deno.mkdir('apps/order-service/src', { recursive: true });
+    await runCLI(['order-service', 'init']);
+
+    // Generate components after initialization
+    const commandResult = await runCLI(['order-service', 'create', 'command', 'CreateOrder']);
+    const eventResult = await runCLI(['order-service', 'create', 'event', 'OrderCreated']);
+    const queryResult = await runCLI(['order-service', 'create', 'query', 'GetOrderById']);
+
+    // Check all commands succeeded
+    assertEquals(commandResult.code, 0);
+    assertEquals(eventResult.code, 0);
+    assertEquals(queryResult.code, 0);
+
+    // Verify files were created in correct locations
+    assert(
+      await exists(
+        'apps/order-service/src/application/commands/create-order/create-order.command.ts',
+      ),
+    );
+    assert(
+      await exists(
+        'apps/order-service/src/application/events/order-created/order-created.event.ts',
+      ),
+    );
+    assert(
+      await exists(
+        'apps/order-service/src/application/queries/get-order-by-id/get-order-by-id.query.ts',
+      ),
+    );
+
+    // Check that index files were created with correct content
+    const commandsIndex = await Deno.readTextFile(
+      'apps/order-service/src/application/commands/index.ts',
+    );
+    assert(commandsIndex.includes('CreateOrderCommandHandler'));
+
+    const eventsIndex = await Deno.readTextFile(
+      'apps/order-service/src/application/events/index.ts',
+    );
+    assert(eventsIndex.includes('OrderCreatedEventHandler'));
+
+    const queriesIndex = await Deno.readTextFile(
+      'apps/order-service/src/application/queries/index.ts',
+    );
+    assert(queriesIndex.includes('GetOrderByIdQueryHandler'));
+  } finally {
+    await cleanupTestApps();
+  }
+});
+
+Deno.test('CLI - init command works with kebab-case and PascalCase app names', async () => {
+  await cleanupTestApps();
+
+  try {
+    // Test with kebab-case name
+    await Deno.mkdir('apps/auth-service/src', { recursive: true });
+    const kebabResult = await runCLI(['auth-service', 'init']);
+    assertEquals(kebabResult.code, 0);
+    assert(await exists('apps/auth-service/src/application'));
+
+    // Test with PascalCase name (should still work)
+    await Deno.mkdir('apps/UserManagement/src', { recursive: true });
+    const pascalResult = await runCLI(['UserManagement', 'init']);
+    assertEquals(pascalResult.code, 0);
+    assert(await exists('apps/UserManagement/src/application'));
   } finally {
     await cleanupTestApps();
   }

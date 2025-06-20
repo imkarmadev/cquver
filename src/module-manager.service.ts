@@ -21,7 +21,7 @@ export class ModuleManagerService {
     type: 'command' | 'event' | 'query',
     newHandler: HandlerInfo,
   ): Promise<void> {
-    const typePath = join('apps', 'src', appName, 'application', typeFolder);
+    const typePath = join('apps', appName, 'src', 'application', typeFolder);
     const indexPath = join(typePath, 'index.ts');
 
     // Get all existing handlers
@@ -49,7 +49,7 @@ export class ModuleManagerService {
     _type: 'command' | 'event' | 'query',
     newClass: ClassInfo,
   ): Promise<void> {
-    const applicationPath = join('apps', 'src', appName, 'application');
+    const applicationPath = join('apps', appName, 'src', 'application');
     const indexPath = join(applicationPath, 'index.ts');
 
     // Get all existing classes
@@ -74,7 +74,7 @@ export class ModuleManagerService {
    * Updates the service module file to include handler arrays
    */
   async updateServiceModule(appName: string): Promise<void> {
-    const modulePath = join('apps', 'src', appName, 'src', `${appName}.module.ts`);
+    const modulePath = join('apps', appName, 'src', `${appName}.module.ts`);
 
     try {
       // Check if module file exists
@@ -84,7 +84,7 @@ export class ModuleManagerService {
       } catch {
         // Create new module file if it doesn't exist
         moduleContent = this.generateNewModuleContent(appName);
-        await ensureDir(join('apps', 'src', appName, 'src'));
+        await ensureDir(join('apps', appName, 'src'));
       }
 
       // Update module content with handler imports and providers

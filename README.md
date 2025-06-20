@@ -10,6 +10,7 @@ _A Deno CLI tool that generates boilerplate code for NestJS monorepos using Doma
 
 ## Features
 
+- ✅ **Initialize folder structure** for DDD/Clean Architecture pattern
 - ✅ Generate **Events** with handlers
 - ✅ Generate **Commands** with handlers
 - ✅ Generate **Queries** with handlers
@@ -84,19 +85,39 @@ sudo mv cquver /usr/local/bin/
 
 ## Usage
 
+### Initialize Service Structure
+
+First, create your NestJS app using the NestJS CLI:
+
 ```bash
-cquver <app_name> create <type> <name>
+# Create the NestJS app first
+nest generate app <service_name>
+```
+
+Then initialize the DDD/Clean Architecture folder structure:
+
+```bash
+cquver <app_name> init
+```
+
+### Generate Components
+
+```bash
+cquver <app_name> create <type> <n>
 ```
 
 ### Parameters
 
-- `<app_name>`: The name of your NestJS application
+- `<app_name>`: The name of your NestJS application (must exist in apps/ directory)
 - `<type>`: One of `event`, `command`, or `query`
-- `<name>`: The name of the event/command/query (will be normalized)
+- `<n>`: The name of the event/command/query (will be normalized)
 
 ### Examples
 
 ```bash
+# Initialize service structure
+cquver user-service init
+
 # Generate an event
 cquver user-service create event UserCreated
 cquver user-service create event user-updated-event
@@ -123,28 +144,26 @@ cquver socket-service create query GetConnectionStatus
 Will create:
 
 ```
-apps/src/socket-service/
-├── application/
-│   ├── event/
-│   │   ├── connect-web-socket/
-│   │   │   ├── connect-web-socket.event.ts
-│   │   │   ├── connect-web-socket.handler.ts
-│   │   │   └── index.ts
-│   │   └── index.ts                    # ✨ EventHandlers array
-│   ├── command/
-│   │   ├── disconnect-web-socket/
-│   │   │   ├── disconnect-web-socket.command.ts
-│   │   │   ├── disconnect-web-socket.handler.ts
-│   │   │   └── index.ts
-│   │   └── index.ts                    # ✨ CommandHandlers array
-│   └── query/
-│       ├── get-connection-status/
-│       │   ├── get-connection-status.query.ts
-│       │   ├── get-connection-status.handler.ts
-│       │   └── index.ts
-│       └── index.ts                    # ✨ QueryHandlers array
+apps/chat-service/
 └── src/
-    └── socket-service.module.ts        # ✨ Auto-updated with providers
+    ├── application/                        # 🏗️ CQRS Application Layer
+    │   ├── commands/                       # Command handlers (created when generating)
+    │   ├── events/                         # Event handlers (created when generating)
+    │   └── queries/                        # Query handlers (created when generating)
+    ├── controllers/                        # 🎮 API Controllers
+    ├── domain/                             # 🏛️ Domain Layer
+    │   ├── constants/                      # Domain constants
+    │   └── entities/                       # Domain entities
+    ├── dto/                                # 📝 Data Transfer Objects
+    │   ├── requests/                       # Request DTOs
+    │   └── responses/                      # Response DTOs
+    ├── infrastructure/                     # 🔧 Infrastructure Layer
+    │   ├── adapters/                       # External adapters
+    │   └── persistence/                    # Database persistence layer
+    └── ports/                              # 🔌 Repository Interfaces
+
+# Note: Additional files and folders (like mongodb/, test/, config files) 
+# should be created using NestJS CLI or other specific commands as needed.
 ```
 
 ### Generated Files
@@ -154,7 +173,7 @@ apps/src/socket-service/
 The CLI automatically creates and maintains handler arrays in each type's index file:
 
 ```typescript
-// apps/src/socket-service/application/command/index.ts
+// apps/socket-service/src/application/commands/index.ts
 import { DisconnectWebSocketCommandHandler } from './disconnect-web-socket';
 import { UpdatePresenceStatusCommandHandler } from './update-presence-status';
 
@@ -167,12 +186,12 @@ export const CommandHandlers = [
 #### Auto-Generated Module
 
 ```typescript
-// apps/src/socket-service/src/socket-service.module.ts
+// apps/socket-service/src/socket-service.module.ts
 import { Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
-import { CommandHandlers } from './application/command';
-import { EventHandlers } from './application/event';
-import { QueryHandlers } from './application/query';
+import { CommandHandlers } from './application/commands';
+import { EventHandlers } from './application/events';
+import { QueryHandlers } from './application/queries';
 
 @Module({
   imports: [CqrsModule],

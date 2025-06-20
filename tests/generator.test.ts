@@ -1,4 +1,4 @@
-import { assert } from 'https://deno.land/std@0.208.0/assert/mod.ts';
+import { assert, assertEquals } from 'https://deno.land/std@0.208.0/assert/mod.ts';
 import { exists } from 'https://deno.land/std@0.208.0/fs/exists.ts';
 import { GeneratorService } from '../src/generator.service.ts';
 
@@ -9,11 +9,16 @@ async function cleanupTestDir(appName: string) {
   } catch {
     // Directory doesn't exist, ignore
   }
+  try {
+    await Deno.remove(`apps/${appName}`, { recursive: true });
+  } catch {
+    // Directory doesn't exist, ignore
+  }
 }
 
 async function setupTestDir() {
   try {
-    await Deno.mkdir('apps/src', { recursive: true });
+    await Deno.mkdir('apps', { recursive: true });
   } catch {
     // Directory already exists, ignore
   }
@@ -31,29 +36,29 @@ Deno.test('GeneratorService - creates event with correct structure', async () =>
     await generator.generate(appName, 'event', 'UserCreated');
 
     // Check directory structure
-    assert(await exists(`apps/src/${appName}/application/events/user-created`));
+    assert(await exists(`apps/${appName}/src/application/events/user-created`));
     assert(
-      await exists(`apps/src/${appName}/application/events/user-created/user-created.event.ts`),
+      await exists(`apps/${appName}/src/application/events/user-created/user-created.event.ts`),
     );
     assert(
-      await exists(`apps/src/${appName}/application/events/user-created/user-created.handler.ts`),
+      await exists(`apps/${appName}/src/application/events/user-created/user-created.handler.ts`),
     );
-    assert(await exists(`apps/src/${appName}/application/events/user-created/index.ts`));
-    assert(await exists(`apps/src/${appName}/application/events/index.ts`));
-    assert(await exists(`apps/src/${appName}/src/${appName}.module.ts`));
+    assert(await exists(`apps/${appName}/src/application/events/user-created/index.ts`));
+    assert(await exists(`apps/${appName}/src/application/events/index.ts`));
+    assert(await exists(`apps/${appName}/src/${appName}.module.ts`));
 
     // Check file contents
     const eventFile = await Deno.readTextFile(
-      `apps/src/${appName}/application/events/user-created/user-created.event.ts`,
+      `apps/${appName}/src/application/events/user-created/user-created.event.ts`,
     );
     assert(eventFile.includes('export class UserCreatedEvent implements IEvent'));
 
     const handlerFile = await Deno.readTextFile(
-      `apps/src/${appName}/application/events/user-created/user-created.handler.ts`,
+      `apps/${appName}/src/application/events/user-created/user-created.handler.ts`,
     );
     assert(handlerFile.includes('export class UserCreatedEventHandler implements IEventHandler'));
 
-    const eventsIndex = await Deno.readTextFile(`apps/src/${appName}/application/events/index.ts`);
+    const eventsIndex = await Deno.readTextFile(`apps/${appName}/src/application/events/index.ts`);
     assert(eventsIndex.includes('export const EventHandlers = ['));
     assert(eventsIndex.includes('UserCreatedEventHandler'));
     assert(eventsIndex.includes('export { UserCreatedEvent }'));
@@ -74,23 +79,23 @@ Deno.test('GeneratorService - creates command with correct structure', async () 
     await generator.generate(appName, 'command', 'CreateUser');
 
     // Check directory structure
-    assert(await exists(`apps/src/${appName}/application/commands/create-user`));
+    assert(await exists(`apps/${appName}/src/application/commands/create-user`));
     assert(
-      await exists(`apps/src/${appName}/application/commands/create-user/create-user.command.ts`),
+      await exists(`apps/${appName}/src/application/commands/create-user/create-user.command.ts`),
     );
     assert(
-      await exists(`apps/src/${appName}/application/commands/create-user/create-user.handler.ts`),
+      await exists(`apps/${appName}/src/application/commands/create-user/create-user.handler.ts`),
     );
-    assert(await exists(`apps/src/${appName}/application/commands/index.ts`));
+    assert(await exists(`apps/${appName}/src/application/commands/index.ts`));
 
     // Check file contents
     const commandFile = await Deno.readTextFile(
-      `apps/src/${appName}/application/commands/create-user/create-user.command.ts`,
+      `apps/${appName}/src/application/commands/create-user/create-user.command.ts`,
     );
     assert(commandFile.includes('export class CreateUserCommand implements ICommand'));
 
     const commandsIndex = await Deno.readTextFile(
-      `apps/src/${appName}/application/commands/index.ts`,
+      `apps/${appName}/src/application/commands/index.ts`,
     );
     assert(commandsIndex.includes('export const CommandHandlers = ['));
     assert(commandsIndex.includes('CreateUserCommandHandler'));
@@ -112,19 +117,19 @@ Deno.test('GeneratorService - creates query with correct structure', async () =>
     await generator.generate(appName, 'query', 'GetOrder');
 
     // Check directory structure
-    assert(await exists(`apps/src/${appName}/application/queries/get-order`));
-    assert(await exists(`apps/src/${appName}/application/queries/get-order/get-order.query.ts`));
-    assert(await exists(`apps/src/${appName}/application/queries/get-order/get-order.handler.ts`));
-    assert(await exists(`apps/src/${appName}/application/queries/index.ts`));
+    assert(await exists(`apps/${appName}/src/application/queries/get-order`));
+    assert(await exists(`apps/${appName}/src/application/queries/get-order/get-order.query.ts`));
+    assert(await exists(`apps/${appName}/src/application/queries/get-order/get-order.handler.ts`));
+    assert(await exists(`apps/${appName}/src/application/queries/index.ts`));
 
     // Check file contents
     const queryFile = await Deno.readTextFile(
-      `apps/src/${appName}/application/queries/get-order/get-order.query.ts`,
+      `apps/${appName}/src/application/queries/get-order/get-order.query.ts`,
     );
     assert(queryFile.includes('export class GetOrderQuery implements IQuery'));
 
     const queriesIndex = await Deno.readTextFile(
-      `apps/src/${appName}/application/queries/index.ts`,
+      `apps/${appName}/src/application/queries/index.ts`,
     );
     assert(queriesIndex.includes('export const QueryHandlers = ['));
     assert(queriesIndex.includes('GetOrderQueryHandler'));
@@ -148,7 +153,7 @@ Deno.test('GeneratorService - handles multiple handlers in same type', async () 
 
     // Check that both handlers are in the index
     const commandsIndex = await Deno.readTextFile(
-      `apps/src/${appName}/application/commands/index.ts`,
+      `apps/${appName}/src/application/commands/index.ts`,
     );
     assert(commandsIndex.includes('CreateUserCommandHandler'));
     assert(commandsIndex.includes('UpdateUserCommandHandler'));
@@ -162,6 +167,135 @@ Deno.test('GeneratorService - handles multiple handlers in same type', async () 
     const handlerArray = handlerArrayMatch[1];
     assert(handlerArray.includes('CreateUserCommandHandler'));
     assert(handlerArray.includes('UpdateUserCommandHandler'));
+  } finally {
+    await cleanupTestDir(appName);
+  }
+});
+
+Deno.test('GeneratorService - initializeService creates correct folder structure', async () => {
+  const appName = 'test-service';
+  const generator = new GeneratorService();
+
+  await cleanupTestDir(appName);
+
+  try {
+    // Create app directory first (simulate existing NestJS app)
+    await Deno.mkdir(`apps/${appName}/src`, { recursive: true });
+
+    // Initialize service structure
+    await generator.initializeService(appName);
+
+    // Check that all required directories were created
+    assert(await exists(`apps/${appName}/src/application`));
+    assert(await exists(`apps/${appName}/src/application/commands`));
+    assert(await exists(`apps/${appName}/src/application/events`));
+    assert(await exists(`apps/${appName}/src/application/queries`));
+    assert(await exists(`apps/${appName}/src/domain`));
+    assert(await exists(`apps/${appName}/src/domain/constants`));
+    assert(await exists(`apps/${appName}/src/domain/entities`));
+    assert(await exists(`apps/${appName}/src/infrastructure`));
+    assert(await exists(`apps/${appName}/src/infrastructure/adapters`));
+    assert(await exists(`apps/${appName}/src/infrastructure/persistence`));
+    assert(await exists(`apps/${appName}/src/controllers`));
+    assert(await exists(`apps/${appName}/src/dto`));
+    assert(await exists(`apps/${appName}/src/dto/requests`));
+    assert(await exists(`apps/${appName}/src/dto/responses`));
+    assert(await exists(`apps/${appName}/src/ports`));
+
+    // Verify no files were created (only directories)
+    const entries = [];
+    for await (const entry of Deno.readDir(`apps/${appName}/src`)) {
+      if (entry.isFile) {
+        entries.push(entry.name);
+      }
+    }
+    assertEquals(entries.length, 0, 'No files should be created by init command');
+  } finally {
+    await cleanupTestDir(appName);
+  }
+});
+
+Deno.test('GeneratorService - initializeService fails when app does not exist', async () => {
+  const appName = 'nonexistent-service';
+  const generator = new GeneratorService();
+
+  await cleanupTestDir(appName);
+
+  try {
+    // Try to initialize without creating app directory first
+    let errorThrown = false;
+    try {
+      await generator.initializeService(appName);
+    } catch (error) {
+      errorThrown = true;
+      assert(error instanceof Error && error.message.includes('does not exist'));
+    }
+    assert(errorThrown, 'Expected error to be thrown for non-existent app');
+  } finally {
+    await cleanupTestDir(appName);
+  }
+});
+
+Deno.test('GeneratorService - initializeService works with existing structure', async () => {
+  const appName = 'test-service';
+  const generator = new GeneratorService();
+
+  await cleanupTestDir(appName);
+
+  try {
+    // Create app directory and some existing structure
+    await Deno.mkdir(`apps/${appName}/src/existing-folder`, { recursive: true });
+    await Deno.writeTextFile(`apps/${appName}/src/existing-file.ts`, 'export const test = true;');
+
+    // Initialize service structure
+    await generator.initializeService(appName);
+
+    // Check that new directories were created
+    assert(await exists(`apps/${appName}/src/application`));
+    assert(await exists(`apps/${appName}/src/domain`));
+    assert(await exists(`apps/${appName}/src/infrastructure`));
+
+    // Check that existing structure is preserved
+    assert(await exists(`apps/${appName}/src/existing-folder`));
+    assert(await exists(`apps/${appName}/src/existing-file.ts`));
+
+    const fileContent = await Deno.readTextFile(`apps/${appName}/src/existing-file.ts`);
+    assertEquals(fileContent, 'export const test = true;');
+  } finally {
+    await cleanupTestDir(appName);
+  }
+});
+
+Deno.test('GeneratorService - generate works after initializeService', async () => {
+  const appName = 'test-service';
+  const generator = new GeneratorService();
+
+  await cleanupTestDir(appName);
+
+  try {
+    // Create app directory and initialize structure
+    await Deno.mkdir(`apps/${appName}/src`, { recursive: true });
+    await generator.initializeService(appName);
+
+    // Generate a command after initialization
+    await generator.generate(appName, 'command', 'CreateUser');
+
+    // Check that the command was created in the correct location
+    assert(await exists(`apps/${appName}/src/application/commands/create-user`));
+    assert(
+      await exists(`apps/${appName}/src/application/commands/create-user/create-user.command.ts`),
+    );
+    assert(
+      await exists(`apps/${appName}/src/application/commands/create-user/create-user.handler.ts`),
+    );
+    assert(await exists(`apps/${appName}/src/application/commands/index.ts`));
+
+    // Check that the index file was properly created by the generate command
+    const commandsIndex = await Deno.readTextFile(
+      `apps/${appName}/src/application/commands/index.ts`,
+    );
+    assert(commandsIndex.includes('CreateUserCommandHandler'));
+    assert(commandsIndex.includes('export { CreateUserCommand }'));
   } finally {
     await cleanupTestDir(appName);
   }

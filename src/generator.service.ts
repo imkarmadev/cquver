@@ -26,6 +26,87 @@ import { ModuleManagerService } from './module-manager.service.ts';
 export class GeneratorService {
   private moduleManager = new ModuleManagerService();
 
+  async initializeService(appName: string): Promise<void> {
+    // Check if the app exists in the apps directory
+    const appPath = join('apps', appName);
+
+    try {
+      const appStat = await Deno.stat(appPath);
+      if (!appStat.isDirectory) {
+        throw new Error(`App "${appName}" exists but is not a directory`);
+      }
+    } catch (error) {
+      if (error instanceof Deno.errors.NotFound) {
+        console.log(`❌ App "${appName}" not found.`);
+        console.log(`💡 Please create the NestJS app first using:`);
+        console.log(`   nest generate app ${appName}`);
+        throw new Error(`App "${appName}" does not exist`);
+      }
+      throw error;
+    }
+
+    // Create the DDD/Clean Architecture folder structure
+    const basePath = join('apps', appName, 'src');
+
+    // Create application layer structure (CQRS)
+    const applicationPath = join(basePath, 'application');
+    const commandsPath = join(applicationPath, 'commands');
+    const eventsPath = join(applicationPath, 'events');
+    const queriesPath = join(applicationPath, 'queries');
+
+    // Create domain layer structure
+    const domainPath = join(basePath, 'domain');
+    const constantsPath = join(domainPath, 'constants');
+    const entitiesPath = join(domainPath, 'entities');
+
+    // Create infrastructure layer structure
+    const infrastructurePath = join(basePath, 'infrastructure');
+    const adaptersPath = join(infrastructurePath, 'adapters');
+    const persistencePath = join(infrastructurePath, 'persistence');
+
+    // Create other required directories
+    const controllersPath = join(basePath, 'controllers');
+    const dtoPath = join(basePath, 'dto');
+    const requestsPath = join(dtoPath, 'requests');
+    const responsesPath = join(dtoPath, 'responses');
+    const portsPath = join(basePath, 'ports');
+
+    // Create all directories
+    await Promise.all([
+      // Application layer
+      ensureDir(commandsPath),
+      ensureDir(eventsPath),
+      ensureDir(queriesPath),
+      // Domain layer
+      ensureDir(constantsPath),
+      ensureDir(entitiesPath),
+      // Infrastructure layer
+      ensureDir(adaptersPath),
+      ensureDir(persistencePath),
+      // Other layers
+      ensureDir(controllersPath),
+      ensureDir(requestsPath),
+      ensureDir(responsesPath),
+      ensureDir(portsPath),
+    ]);
+
+    console.log(`📁 Created directory: ${applicationPath}`);
+    console.log(`📁 Created directory: ${commandsPath}`);
+    console.log(`📁 Created directory: ${eventsPath}`);
+    console.log(`📁 Created directory: ${queriesPath}`);
+    console.log(`📁 Created directory: ${domainPath}`);
+    console.log(`📁 Created directory: ${constantsPath}`);
+    console.log(`📁 Created directory: ${entitiesPath}`);
+    console.log(`📁 Created directory: ${infrastructurePath}`);
+    console.log(`📁 Created directory: ${adaptersPath}`);
+    console.log(`📁 Created directory: ${persistencePath}`);
+    console.log(`📁 Created directory: ${controllersPath}`);
+    console.log(`📁 Created directory: ${dtoPath}`);
+    console.log(`📁 Created directory: ${requestsPath}`);
+    console.log(`📁 Created directory: ${responsesPath}`);
+    console.log(`📁 Created directory: ${portsPath}`);
+  }
+
   async generate(
     appName: string,
     type: 'event' | 'command' | 'query',
@@ -41,7 +122,7 @@ export class GeneratorService {
 
     // Create directory path (use plural folder names)
     const typeFolder = this.getTypeFolderName(type);
-    const basePath = join('apps', 'src', appName, 'application', typeFolder, folderName);
+    const basePath = join('apps', appName, 'src', 'application', typeFolder, folderName);
     await ensureDir(basePath);
 
     // Generate file paths
