@@ -91,9 +91,15 @@ async function getCommitsSinceLastTag(): Promise<string[]> {
   } catch {
     try {
       // Fallback: get latest tag on current branch
-      const allTags = await runCommand(['git', 'tag', '--merged', 'HEAD', '--sort=-version:refname']);
+      const allTags = await runCommand([
+        'git',
+        'tag',
+        '--merged',
+        'HEAD',
+        '--sort=-version:refname',
+      ]);
       const latestTag = allTags.split('\n')[0].trim();
-      
+
       if (latestTag) {
         const commits = await runCommand([
           'git',
@@ -102,13 +108,13 @@ async function getCommitsSinceLastTag(): Promise<string[]> {
           '--oneline',
           '--no-merges',
         ]);
-        
+
         return commits ? commits.split('\n').filter((line) => line.trim()) : [];
       }
     } catch {
       // Ignore fallback errors
     }
-    
+
     // If no tags exist, get all commits
     const commits = await runCommand(['git', 'log', '--oneline', '--no-merges']);
     return commits ? commits.split('\n').filter((line) => line.trim()) : [];
@@ -212,7 +218,7 @@ async function main() {
 
   // Parse command line arguments
   const isDryRun = args.includes('--dry-run');
-  const versionArg = args.find(arg => !arg.startsWith('--'));
+  const versionArg = args.find((arg) => !arg.startsWith('--'));
 
   if (!versionArg && !isDryRun) {
     console.error('Usage: deno run generate-changelog.ts <version> [--dry-run]');
@@ -225,7 +231,9 @@ async function main() {
   const newVersion = versionArg ? versionArg.replace(/^v/, '') : 'preview'; // Remove 'v' prefix if present
   const date = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
 
-  console.log(`📝 ${isDryRun ? 'Previewing' : 'Generating'} changelog for version ${newVersion}...`);
+  console.log(
+    `📝 ${isDryRun ? 'Previewing' : 'Generating'} changelog for version ${newVersion}...`,
+  );
 
   try {
     const commits = await getCommitsSinceLastTag();
@@ -249,7 +257,10 @@ async function main() {
 
             // Replace unreleased section with new release and clean unreleased
             const updatedContent = existingContent
-              .replace(/## \[Unreleased\][\s\S]*?(?=## \[|$)/, `## [Unreleased]\n\n${releaseContent}`)
+              .replace(
+                /## \[Unreleased\][\s\S]*?(?=## \[|$)/,
+                `## [Unreleased]\n\n${releaseContent}`,
+              )
               .replace(/\n{3,}/g, '\n\n'); // Clean up extra newlines
 
             await Deno.writeTextFile(changelogPath, updatedContent);
@@ -289,7 +300,7 @@ async function main() {
     }
 
     const changelogContent = formatChangelog(newVersion, entries, date);
-    
+
     if (!isDryRun) {
       await updateChangelog(newVersion, changelogContent);
       console.log('✅ Changelog updated successfully!');

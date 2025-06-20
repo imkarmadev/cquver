@@ -25,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [--dry-run] - 2025-06-20
+
 ### Added
 
 - Automated workflow validation system
