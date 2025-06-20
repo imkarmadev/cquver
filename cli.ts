@@ -8,24 +8,33 @@ interface Args {
   help?: boolean;
 }
 
-function printHelp() {
+function showHelp() {
   console.log(`
-cquver - NestJS DDD/CQRS Boilerplate Generator
+🚀 cquver - NestJS DDD/CQRS Boilerplate Generator
 
-Usage:
-  cquver <app_name> init                    Initialize service folder structure
-  cquver <app_name> create event <n>        Generate event boilerplate
-  cquver <app_name> create command <n>      Generate command boilerplate
-  cquver <app_name> create query <n>        Generate query boilerplate
+📋 Usage:
+  cquver <action> <type> <name> [app]
 
-Options:
-  --help                                    Show this help message
+🎯 Actions:
+  create, c, generate, g    Generate a new handler
+  init, i                   Initialize DDD/CQRS structure
 
-Examples:
-  cquver user-service init
-  cquver user-service create event UserCreatedEvent
-  cquver auth-service create command CreateUserCommand
-  cquver order-service create query GetOrderQuery
+📦 Types:
+  command, cmd              Generate command handler
+  query, q                  Generate query handler  
+  event, e                  Generate event handler
+
+✨ Examples:
+  cquver create command CreateUser user-service
+  cquver generate query GetUser user-service
+  cquver init user-service
+
+💡 Tips:
+  - Use kebab-case for names (they'll be converted automatically)
+  - App parameter is optional if you have only one NestJS app
+  - Run 'cquver init <app>' first to set up the folder structure
+
+🔗 More help: https://github.com/imkarmadev/cquver
   `);
 }
 
@@ -33,7 +42,7 @@ async function main() {
   const args = parseArgs(Deno.args) as Args;
 
   if (args.help || args._.length === 0) {
-    printHelp();
+    showHelp();
     Deno.exit(0);
   }
 
