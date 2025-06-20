@@ -167,27 +167,35 @@ jobs:
           echo "**Suggested version bump: \`$BUMP_LEVEL\`**" >> version_impact.md
           echo "" >> version_impact.md
 
-          if [ ${#BREAKING[@]} -gt 0 ]; then
+                    if [ ${#BREAKING[@]} -gt 0 ]; then
             echo "### ⚠️ Breaking Changes (Major)" >> version_impact.md
-            printf '- %s\n' "${BREAKING[@]}" >> version_impact.md
+            for commit in "${BREAKING[@]}"; do
+              echo "- $commit" >> version_impact.md
+            done
             echo "" >> version_impact.md
           fi
 
           if [ ${#FEATURES[@]} -gt 0 ]; then
             echo "### ✨ Features (Minor)" >> version_impact.md
-            printf '- %s\n' "${FEATURES[@]}" >> version_impact.md
+            for commit in "${FEATURES[@]}"; do
+              echo "- $commit" >> version_impact.md
+            done
             echo "" >> version_impact.md
           fi
 
           if [ ${#FIXES[@]} -gt 0 ]; then
             echo "### 🐛 Bug Fixes (Patch)" >> version_impact.md
-            printf '- %s\n' "${FIXES[@]}" >> version_impact.md
+            for commit in "${FIXES[@]}"; do
+              echo "- $commit" >> version_impact.md
+            done
             echo "" >> version_impact.md
           fi
 
           if [ ${#OTHER[@]} -gt 0 ]; then
             echo "### 🔧 Other Changes (Patch)" >> version_impact.md
-            printf '- %s\n' "${OTHER[@]}" >> version_impact.md
+            for commit in "${OTHER[@]}"; do
+              echo "- $commit" >> version_impact.md
+            done
             echo "" >> version_impact.md
           fi
 
