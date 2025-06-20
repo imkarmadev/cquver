@@ -4,7 +4,7 @@
 
 # cquver - NestJS DDD/CQRS Boilerplate Generator
 
-*A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domain-Driven Design (DDD) and Command Query Responsibility Segregation (CQRS) patterns.*
+_A Deno CLI tool that generates boilerplate code for NestJS monorepos using Domain-Driven Design (DDD) and Command Query Responsibility Segregation (CQRS) patterns._
 
 </div>
 
@@ -31,24 +31,24 @@
 
 ```bash
 # Install latest version automatically
-curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/imkarmadev/cquver/main/install.sh | bash
 
 # Install specific version
-curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash -s -- --version=v1.0.0
+curl -fsSL https://raw.githubusercontent.com/imkarmadev/cquver/main/install.sh | bash -s -- --version=v1.0.0
 
 # Install to custom directory
-curl -fsSL https://raw.githubusercontent.com/<your-repo>/main/install.sh | bash -s -- --install-dir=~/bin
+curl -fsSL https://raw.githubusercontent.com/imkarmadev/cquver/main/install.sh | bash -s -- --install-dir=~/bin
 ```
 
 ### Option 2: Download Pre-built Binary
 
 ```bash
 # Linux x64
-curl -fsSL https://github.com/<your-repo>/releases/latest/download/cquver-linux-x64 -o cquver
+curl -fsSL https://github.com/imkarmadev/cquver/releases/latest/download/cquver-linux-x64 -o cquver
 chmod +x cquver
 
 # macOS ARM64 (Apple Silicon)
-curl -fsSL https://github.com/<your-repo>/releases/latest/download/cquver-macos-arm64 -o cquver
+curl -fsSL https://github.com/imkarmadev/cquver/releases/latest/download/cquver-macos-arm64 -o cquver
 chmod +x cquver
 ```
 
@@ -69,7 +69,7 @@ chmod +x cquver
 
 ```bash
 # Run without compiling (smallest footprint)
-deno run --allow-read --allow-write --allow-env https://raw.githubusercontent.com/<your-repo>/main/cli.ts <args>
+deno run --allow-read --allow-write --allow-env https://raw.githubusercontent.com/imkarmadev/cquver/main/cli.ts <args>
 
 # Or locally
 deno task dev <args>
